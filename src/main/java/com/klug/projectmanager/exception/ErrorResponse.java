@@ -1,2 +1,11 @@
-package com.klug.projectmanager.exception;public class ErrorResponse {
+package com.klug.projectmanager.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class ErrorResponse {
+    private int statusCode;
+    private String message;
 }

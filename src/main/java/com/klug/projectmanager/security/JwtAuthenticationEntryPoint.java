@@ -1,4 +1,4 @@
-package com.klug.projectmanager.config;
+package com.klug.projectmanager.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
