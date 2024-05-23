@@ -24,8 +24,15 @@ public class Project {
     private LocalDate endDate;
 
     @ManyToMany
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private List<User> teamMembers;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Note> notes;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatMessage> chatMessages;
 }
 
