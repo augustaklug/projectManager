@@ -1,9 +1,10 @@
 # Diagramas do projeto
 ## Diagrama de classes
-<img src="/docs/TP1-Class Diagram.png" alt="Diagrama de Classes">
+![image](https://github.com/augustaklug/projectManager/assets/56510700/75308d2a-76d1-45ee-b3b8-87dc531c38b5)
 
 ## Diagrama de componentes
-<img src="/docs/TP1-Component Diagram.png" alt="Diagrama de Componentes">
+
+![image](https://github.com/augustaklug/projectManager/assets/56510700/c38c38d6-6af3-4f06-b6bb-2bd880cc5dd4)
 
 
 * ● Presentation Layer: Contém os controladores que lidam com as requisições HTTP.
@@ -17,7 +18,8 @@
 
 ## Diagramas de sequência
 ### Autenticação de usuário
-<img src="/docs/TP1-Sequence Auth.png" alt="Autenticação de usuário">
+![image](https://github.com/augustaklug/projectManager/assets/56510700/c763b5c3-ac53-4d11-a61e-775e6a7623b7)
+
 
 * ● Ator: Usuário
 * ● Objetivo: Autenticar o usuário e gerar um token JWT
@@ -32,7 +34,9 @@
   * ● O controlador de autenticação retorna o token JWT para o usuário.
 
 ### Criar nota em tarefa
-<img src="/docs/TP1-Sequence Note for Task.png" alt="Criar nota em tarefa">
+
+![image](https://github.com/augustaklug/projectManager/assets/56510700/e4f068aa-1f32-468a-a9ce-1cc8b355f6e3)
+
 
 * ● Ator: Usuário (Gerente de Projeto ou Membro da Equipe)
 * ● Objetivo: Adicionar uma nova nota a uma tarefa existente
