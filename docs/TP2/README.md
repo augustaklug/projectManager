@@ -105,3 +105,16 @@ Foram adicionados testes unitários para as principais funcionalidades, incluind
 Estes testes cobrem a criação, atualização e recuperação de histórico para projetos, tarefas e usuários, garantindo a integridade das novas funcionalidades de histórico e persistência.
 
 Esta documentação atualizada reflete as novas funcionalidades de histórico e persistência avançada, destacando como elas melhoram a rastreabilidade, auditoria e integridade dos dados no sistema de gerenciamento de projetos.
+
+## Resumo
+
+- Modelagem de dados considerando requisitos de consulta e isolamento de domínio: As entidades (Project, Task, User, etc.) estão bem definidas e separadas, com relacionamentos apropriados entre elas.
+- Utilização de anotações JPA para mapeamento objeto-relacional: As entidades como Project, Task, User, etc. utilizam anotações JPA como @Entity, @Id, @GeneratedValue, @ManyToOne, @OneToMany, etc.
+- Criação e utilização de Repositórios Spring Data: Existem interfaces de repositório como ProjectRepository, TaskRepository, UserRepository, etc., que estendem JpaRepository.
+- Gerenciamento de acesso e manipulação de dados assegurando integridade e performance:  Os serviços (ProjectService, TaskService, UserService) encapsulam a lógica de negócios e utilizam os repositórios para acesso aos dados.
+- Integração de funcionalidades para registrar e consultar histórico de mudanças: Implementadas entidades de histórico (ProjectHistory, TaskHistory, UserHistory) e métodos para registrar mudanças nos serviços.
+- Desenvolvimento de testes automatizados para a camada de persistência: Existem testes unitários para ProjectService, TaskService e UserService que incluem testes para operações de persistência.
+- Atualização do repositório Git com a implementação da camada de persistência: o código está atualizado neste repositório.
+- Expansão da documentação para incluir detalhes sobre o design da camada de persistência: A documentação atualizada (arquivos presentes no diretório atual) inclui informações sobre a camada de persistência, entidades e repositórios.
+- Inclusão de exemplos de uso dos repositórios na documentação: incluída no arquivo [docs/TP2/Persistência.md](https://github.com/augustaklug/projectManager/blob/538ada79f2a751dc4a9ef3ea8acb401e6abdf71f/docs/TP2/Persist%C3%AAncia.md)
+- Apresentação de testes automatizados demonstrando funcionalidade e robustez: Os testes unitários para ProjectService, TaskService e UserService demonstram a funcionalidade da camada de persistência.
