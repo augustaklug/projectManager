@@ -25,9 +25,18 @@ public class Task {
 
     private String status;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+
+    @Version
+    private Long version;
+
     @ManyToOne
     private User assignedTo;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskHistory> history;
 }

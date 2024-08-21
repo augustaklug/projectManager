@@ -1,6 +1,7 @@
 package com.klug.projectmanager.controller;
 
 import com.klug.projectmanager.dto.TaskDTO;
+import com.klug.projectmanager.entity.TaskHistory;
 import com.klug.projectmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,12 @@ public class TaskController {
     public ResponseEntity<TaskDTO> getTaskById(@PathVariable Long id) {
         TaskDTO task = taskService.getTaskById(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<TaskHistory>> getTaskHistory(@PathVariable Long id) {
+        List<TaskHistory> history = taskService.getTaskHistory(id);
+        return new ResponseEntity<>(history, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

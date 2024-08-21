@@ -21,6 +21,12 @@ public class Project {
 
     private LocalDate endDate;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+
+    @Version
+    private Long version;
+
     @ManyToMany
     @JoinTable(
             name = "project_team_members",
@@ -37,5 +43,8 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> chatMessages;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectHistory> history;
 }
 

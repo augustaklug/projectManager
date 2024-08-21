@@ -1,6 +1,7 @@
 package com.klug.projectmanager.controller;
 
 import com.klug.projectmanager.dto.UserDTO;
+import com.klug.projectmanager.entity.UserHistory;
 import com.klug.projectmanager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,12 @@ public class UserController {
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         UserDTO user = userService.getUserById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<UserHistory>> getUserHistory(@PathVariable Long id) {
+        List<UserHistory> history = userService.getUserHistory(id);
+        return new ResponseEntity<>(history, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

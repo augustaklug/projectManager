@@ -2,19 +2,25 @@ package com.klug.projectmanager.service;
 
 import com.klug.projectmanager.dto.ProjectDTO;
 import com.klug.projectmanager.entity.Project;
+import com.klug.projectmanager.entity.ProjectHistory;
 import com.klug.projectmanager.entity.User;
 import com.klug.projectmanager.exception.CustomException;
 import com.klug.projectmanager.repository.ProjectRepository;
+import com.klug.projectmanager.repository.ProjectHistoryRepository;
 import com.klug.projectmanager.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,82 +30,106 @@ public class ProjectService {
     private ProjectRepository projectRepository;
 
     @Autowired
+    private ProjectHistoryRepository projectHistoryRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private ModelMapper modelMapper;
 
-public ProjectDTO createProject(ProjectDTO projectDTO) {
-    // Validar se o nome do projeto é único
-    if (projectRepository.existsByName(projectDTO.getName())) {
-        throw new CustomException("O nome do projeto já está em uso.", HttpStatus.BAD_REQUEST);
+    @Transactional
+    public ProjectDTO createProject(ProjectDTO projectDTO) {
+        if (projectRepository.existsByNameAndIsDeletedFalse(projectDTO.getName())) {
+            throw new CustomException("O nome do projeto já está em uso.", HttpStatus.BAD_REQUEST);
+        }
+
+        Project project = mapToEntity(projectDTO);
+        project.setDeleted(false);
+
+        List<User> teamMembers = projectDTO.getTeamMemberIds() != null ?
+                userRepository.findAllById(List.of(projectDTO.getTeamMemberIds())) :
+                new ArrayList<>();
+        project.setTeamMembers(teamMembers);
+
+        Project savedProject = projectRepository.save(project);
+
+        addToHistory(savedProject, "Criação", null, "Projeto criado");
+
+        return mapToDTO(savedProject);
     }
-
-    // Mapear o DTO para uma entidade Project
-    Project project = mapToEntity(projectDTO);
-
-    // Verificar se teamMemberIds não é nulo antes de obter os usuários
-    List<User> teamMembers;
-    if (projectDTO.getTeamMemberIds() != null) {
-        teamMembers = userRepository.findAllById(List.of(projectDTO.getTeamMemberIds()));
-    } else {
-        teamMembers = new ArrayList<>();
-    }
-    project.setTeamMembers(teamMembers);
-
-    // Salvar o projeto no banco de dados
-    Project savedProject = projectRepository.save(project);
-
-    // Mapear a entidade salva de volta para um DTO
-    return mapToDTO(savedProject);
-}
 
     public List<ProjectDTO> getAllProjects() {
-        List<Project> projects = projectRepository.findAll();
+        List<Project> projects = projectRepository.findByIsDeletedFalse();
         return projects.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
     public ProjectDTO getProjectById(Long id) {
-        Optional<Project> projectOptional = projectRepository.findById(id);
-        if (projectOptional.isPresent()) {
-            return mapToDTO(projectOptional.get());
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto não encontrado.");
+        Project project = projectRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Projeto não encontrado.", HttpStatus.NOT_FOUND));
+        return mapToDTO(project);
+    }
+
+    @Transactional
+    public ProjectDTO updateProject(Long id, ProjectDTO projectDTO) {
+        Project project = projectRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Projeto não encontrado.", HttpStatus.NOT_FOUND));
+
+        try {
+            if (!Objects.equals(project.getName(), projectDTO.getName())) {
+                addToHistory(project, "name", project.getName(), projectDTO.getName());
+                project.setName(projectDTO.getName());
+            }
+            if (!Objects.equals(project.getStartDate(), projectDTO.getStartDate())) {
+                addToHistory(project, "startDate",
+                             project.getStartDate() != null ? project.getStartDate().toString() : "null",
+                             projectDTO.getStartDate() != null ? projectDTO.getStartDate().toString() : "null");
+                project.setStartDate(projectDTO.getStartDate());
+            }
+            if (!Objects.equals(project.getEndDate(), projectDTO.getEndDate())) {
+                addToHistory(project, "endDate",
+                             project.getEndDate() != null ? project.getEndDate().toString() : "null",
+                             projectDTO.getEndDate() != null ? projectDTO.getEndDate().toString() : "null");
+                project.setEndDate(projectDTO.getEndDate());
+            }
+
+            List<User> teamMembers = projectDTO.getTeamMemberIds() != null ?
+                    userRepository.findAllById(List.of(projectDTO.getTeamMemberIds())) :
+                    new ArrayList<>();
+            project.setTeamMembers(teamMembers);
+
+            Project updatedProject = projectRepository.save(project);
+            return mapToDTO(updatedProject);
+        } catch (OptimisticLockingFailureException e) {
+            throw new CustomException("O projeto foi modificado por outro usuário. Por favor, tente novamente.", HttpStatus.CONFLICT);
         }
     }
 
-public ProjectDTO updateProject(Long id, ProjectDTO projectDTO) {
-    Optional<Project> projectOptional = projectRepository.findById(id);
-    if (projectOptional.isPresent()) {
-        Project project = projectOptional.get();
-        project.setName(projectDTO.getName());
-        project.setStartDate(projectDTO.getStartDate());
-        project.setEndDate(projectDTO.getEndDate());
-
-        // Verificar se teamMemberIds não é nulo antes de obter os usuários
-        List<User> teamMembers;
-        if (projectDTO.getTeamMemberIds() != null) {
-            teamMembers = userRepository.findAllById(List.of(projectDTO.getTeamMemberIds()));
-        } else {
-            teamMembers = new ArrayList<>();
-        }
-        project.setTeamMembers(teamMembers);
-
-        Project updatedProject = projectRepository.save(project);
-        return mapToDTO(updatedProject);
-    } else {
-        throw new CustomException("Projeto não encontrado.", HttpStatus.NOT_FOUND);
-    }
-}
-
+    @Transactional
     public void deleteProject(Long id) {
-        if (projectRepository.existsById(id)) {
-            projectRepository.deleteById(id);
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto não encontrado.");
-        }
+        Project project = projectRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Projeto não encontrado.", HttpStatus.NOT_FOUND));
+        project.setDeleted(true);
+        projectRepository.save(project);
+        addToHistory(project, "isDeleted", "false", "true");
+    }
+
+    private void addToHistory(Project project, String fieldName, String oldValue, String newValue) {
+        ProjectHistory history = new ProjectHistory();
+        history.setProject(project);
+        history.setFieldName(fieldName);
+        history.setOldValue(oldValue != null ? oldValue : "null");
+        history.setNewValue(newValue != null ? newValue : "null");
+        history.setChangeDate(LocalDateTime.now());
+        history.setChangedBy(getCurrentUsername());
+        projectHistoryRepository.save(history);
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null ? authentication.getName() : "Sistema";
     }
 
     private ProjectDTO mapToDTO(Project project) {
@@ -108,5 +138,9 @@ public ProjectDTO updateProject(Long id, ProjectDTO projectDTO) {
 
     private Project mapToEntity(ProjectDTO projectDTO) {
         return modelMapper.map(projectDTO, Project.class);
+    }
+
+    public List<ProjectHistory> getProjectHistory(Long projectId) {
+        return projectHistoryRepository.findByProjectIdOrderByChangeDateDesc(projectId);
     }
 }

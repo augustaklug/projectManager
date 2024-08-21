@@ -2,16 +2,23 @@ package com.klug.projectmanager.service;
 
 import com.klug.projectmanager.dto.UserDTO;
 import com.klug.projectmanager.entity.User;
+import com.klug.projectmanager.entity.UserHistory;
 import com.klug.projectmanager.exception.CustomException;
 import com.klug.projectmanager.repository.UserRepository;
+import com.klug.projectmanager.repository.UserHistoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,72 +28,97 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private UserHistoryRepository userHistoryRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional
     public UserDTO createUser(UserDTO userDTO) {
-        // Validar se o nome de usuário é único
-        if (userRepository.findByUsername(userDTO.getUsername()) != null) {
+        if (userRepository.findByUsernameAndIsDeletedFalse(userDTO.getUsername()) != null) {
             throw new CustomException("O nome de usuário já está em uso.", HttpStatus.BAD_REQUEST);
         }
 
-        // Mapear o DTO para uma entidade User
         User user = mapToEntity(userDTO);
-
-        // Codificar a senha antes de salvar
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Salvar o usuário no banco de dados
+        user.setDeleted(false);
         User savedUser = userRepository.save(user);
 
-        // Mapear a entidade salva de volta para um DTO
+        addToHistory(savedUser, "Criação", null, "Usuário criado");
+
         return mapToDTO(savedUser);
     }
 
     public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findByIsDeletedFalse();
         return users.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
     public UserDTO getUserById(Long id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            return mapToDTO(userOptional.get());
-        } else {
-            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
-        }
+        User user = userRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
+        return mapToDTO(user);
     }
 
+    @Transactional
     public UserDTO updateUser(Long id, UserDTO userDTO) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setUsername(userDTO.getUsername());
-            user.setEmail(userDTO.getEmail());
-            user.setRole(userDTO.getRole());
+        User user = userRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
 
-            // Atualizar a senha se fornecida
+        try {
+            if (!Objects.equals(user.getUsername(), userDTO.getUsername())) {
+                addToHistory(user, "username", user.getUsername(), userDTO.getUsername());
+                user.setUsername(userDTO.getUsername());
+            }
+            if (!Objects.equals(user.getEmail(), userDTO.getEmail())) {
+                addToHistory(user, "email", user.getEmail(), userDTO.getEmail());
+                user.setEmail(userDTO.getEmail());
+            }
+            if (!Objects.equals(user.getRole(), userDTO.getRole())) {
+                addToHistory(user, "role", user.getRole(), userDTO.getRole());
+                user.setRole(userDTO.getRole());
+            }
+
             if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+                addToHistory(user, "password", "********", "********");
             }
 
             User updatedUser = userRepository.save(user);
             return mapToDTO(updatedUser);
-        } else {
-            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+        } catch (OptimisticLockingFailureException e) {
+            throw new CustomException("O usuário foi modificado por outra operação. Por favor, tente novamente.", HttpStatus.CONFLICT);
         }
     }
 
+    @Transactional
     public void deleteUser(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-        } else {
-            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
-        }
+        User user = userRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
+        user.setDeleted(true);
+        userRepository.save(user);
+        addToHistory(user, "isDeleted", "false", "true");
+    }
+
+    private void addToHistory(User user, String fieldName, String oldValue, String newValue) {
+        UserHistory history = new UserHistory();
+        history.setUser(user);
+        history.setFieldName(fieldName);
+        history.setOldValue(oldValue != null ? oldValue : "null");
+        history.setNewValue(newValue != null ? newValue : "null");
+        history.setChangeDate(LocalDateTime.now());
+        history.setChangedBy(getCurrentUsername());
+        userHistoryRepository.save(history);
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null ? authentication.getName() : "Sistema";
     }
 
     private UserDTO mapToDTO(User user) {
@@ -95,5 +127,21 @@ public class UserService {
 
     private User mapToEntity(UserDTO userDTO) {
         return modelMapper.map(userDTO, User.class);
+    }
+
+    public List<UserHistory> getUserHistory(Long userId) {
+        return userHistoryRepository.findByUserIdOrderByChangeDateDesc(userId);
+    }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsernameAndIsDeletedFalse(username);
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsernameAndIsDeletedFalse(username);
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmailAndIsDeletedFalse(email);
     }
 }

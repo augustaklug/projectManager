@@ -23,6 +23,12 @@ public class User {
 
     private String password;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+
+    @Version
+    private Long version;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "assignedTo", cascade = CascadeType.ALL)
@@ -32,4 +38,7 @@ public class User {
     @EqualsAndHashCode.Exclude
     @ManyToMany(mappedBy = "teamMembers")
     private List<Project> projects;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserHistory> history;
 }

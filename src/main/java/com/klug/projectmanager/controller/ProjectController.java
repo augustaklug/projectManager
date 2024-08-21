@@ -1,6 +1,7 @@
 package com.klug.projectmanager.controller;
 
 import com.klug.projectmanager.dto.ProjectDTO;
+import com.klug.projectmanager.entity.ProjectHistory;
 import com.klug.projectmanager.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,12 @@ public class ProjectController {
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
         ProjectDTO project = projectService.getProjectById(id);
         return new ResponseEntity<>(project, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<ProjectHistory>> getProjectHistory(@PathVariable Long id) {
+        List<ProjectHistory> history = projectService.getProjectHistory(id);
+        return new ResponseEntity<>(history, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
