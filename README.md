@@ -1,24 +1,39 @@
-# Project Manager
+# Project Manager - Gerenciador de Projetos
 
 ## Visão Geral
 
-O Project Manager é uma aplicação web desenvolvida como um projeto para a Graduação em Engenharia da Computação, no bloco de Engenharia de Softwares Escaláveis. 
-O objetivo do projeto é facilitar a gestão de projetos, tarefas e equipes, oferecendo uma interface intuitiva e funcionalidades voltadas para a organização e monitoramento de atividades.
+O Gerenciador de Projetos é um sistema  de gerenciamento de projetos desenvolvido com Spring Boot para o backend e React/Next.js para o frontend. Ele fornece uma plataforma para criar e gerenciar projetos, tarefas e colaboração em equipe.
+
+Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da gradução em Engenharia da Computação - Instituto Infnet.
 
 ## Funcionalidades
 
-- **Gestão de Projetos**: Criação, atualização e acompanhamento do progresso de diversos projetos.
-- **Gestão de Tarefas**: Atribuição de tarefas aos membros da equipe, definição de prazos e monitoramento da conclusão.
-- **Colaboração em Equipe**: Gerenciamento de papéis e permissões dos membros da equipe.
-- **Autenticação**: Login seguro e controle de acesso.
-- **Design Responsivo**: Acessível tanto em dispositivos desktop quanto móveis.
+- Autenticação e autorização de usuários
+- Criação e gerenciamento de projetos
+- Atribuição e acompanhamento de tarefas
+- Gerenciamento de membros da equipe
+- Funcionalidade de chat em tempo real
+- Criação de notas para projetos e tarefas
+- Acompanhamento de progresso e geração de relatórios
+- Gerenciamento de perfil de usuário
+- Design responsivo para uso em desktop e dispositivos móveis
 
-## Stack Tecnológico
+## Stack Tecnológica
 
-- **Frontend**: Desenvolvido em React com TypeScript, utilizando componentes modernos de UI.
-- **Backend**: Implementado em Spring Boot, conectado a um banco de dados MySQL.
-- **Banco de Dados**: MySQL para armazenamento persistente de dados.
-- **Controle de Versão**: Git
+### Backend
+- Java 21
+- Spring Boot 3.2.6
+- Spring Security
+- Spring Data JPA
+- MySQL
+- JWT para autenticação
+
+### Frontend
+- React 18
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Componentes UI Shadcn
 
 ## Instalação
 
@@ -71,4 +86,24 @@ O objetivo do projeto é facilitar a gestão de projetos, tarefas e equipes, ofe
 
 Após configurar o backend e o frontend, abra o navegador e acesse `http://localhost:3000` para utilizar a aplicação.
 
+## Estrutura do Projeto
+
+### Backend
+- `src/main/java/com/klug/projectmanager/`
+  - `config/`: Classes de configuração
+  - `controller/`: Controladores da API REST
+  - `dto/`: Objetos de Transferência de Dados
+  - `entity/`: Entidades JPA
+  - `exception/`: Exceções personalizadas e manipuladores
+  - `repository/`: Repositórios JPA
+  - `security/`: Configurações de segurança e utilitários JWT
+  - `service/`: Serviços de lógica de negócios
+
+### Frontend
+- `src/`
+  - `app/`: Páginas e roteamento do Next.js
+  - `components/`: Componentes React
+  - `hooks/`: Hooks React personalizados
+  - `lib/`: Funções utilitárias
+  - `services/`: Funções de serviço da API
 
