@@ -1,11 +1,11 @@
 // src/app/projects/[id]/page.tsx
 "use client";
 
-import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthLayout from '@/components/layout/AuthLayout';
 import ProjectDetails from '@/components/projects/ProjectDetails';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface ProjectDetailsPageProps {
   params: {
@@ -16,7 +16,6 @@ interface ProjectDetailsPageProps {
 export default function ProjectDetailsPage({ params }: ProjectDetailsPageProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const projectId = parseInt(params.id, 10);
 
   useEffect(() => {
     if (isAuthenticated === false) {
@@ -26,9 +25,14 @@ export default function ProjectDetailsPage({ params }: ProjectDetailsPageProps) 
 
   if (!isAuthenticated) return null;
 
+  const projectId = parseInt(params.id);
+
   return (
     <AuthLayout>
-      <ProjectDetails projectId={projectId} />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Project Details</h1>
+        <ProjectDetails projectId={projectId} />
+      </div>
     </AuthLayout>
   );
 }

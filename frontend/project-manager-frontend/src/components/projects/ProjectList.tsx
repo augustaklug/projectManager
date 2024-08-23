@@ -2,11 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { projectService } from '@/services/projectService';
+import { Progress } from "@/components/ui/progress"
+import Link from 'next/link';
 
 interface Project {
   id: number;
   name: string;
-  status: string;
+  startDate: string;
+  endDate: string;
+  tasks?: { id: number; status: string }[];
 }
 
 const ProjectList = () => {
@@ -29,6 +33,16 @@ const ProjectList = () => {
     fetchProjects();
   }, []);
 
+  const getProjectStatus = (project: Project) => {
+    if (!project.tasks || project.tasks.length === 0) {
+      return 'No tasks';
+    }
+    const completedTasks = project.tasks.filter(task => task.status === 'Completed').length;
+    const totalTasks = project.tasks.length;
+    const percentComplete = (completedTasks / totalTasks) * 100;
+    return `${percentComplete.toFixed(0)}% Complete`;
+  };
+
   if (loading) return <p>Loading projects...</p>;
   if (error) return <p>Error: {error}</p>;
 
@@ -41,8 +55,15 @@ const ProjectList = () => {
             <CardTitle>{project.name}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Status: {project.status}</p>
-            <Button className="mt-2">View Details</Button>
+            <p>Start Date: {new Date(project.startDate).toLocaleDateString()}</p>
+            <p>End Date: {new Date(project.endDate).toLocaleDateString()}</p>
+            <p>Status: {getProjectStatus(project)}</p>
+            {project.tasks && project.tasks.length > 0 && (
+              <Progress value={(project.tasks.filter(task => task.status === 'Completed').length / project.tasks.length) * 100} className="mt-2" />
+            )}
+            <Link href={`/projects/${project.id}`} passHref>
+              <Button className="mt-2">View Details</Button>
+            </Link>
           </CardContent>
         </Card>
       ))}

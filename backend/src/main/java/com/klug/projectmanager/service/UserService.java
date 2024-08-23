@@ -144,4 +144,10 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmailAndIsDeletedFalse(email);
     }
+
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository.getByUsername(username)
+                .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
+        return mapToDTO(user);
+    }
 }

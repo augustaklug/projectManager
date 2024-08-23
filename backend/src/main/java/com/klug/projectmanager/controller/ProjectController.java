@@ -46,7 +46,6 @@ public class ProjectController {
 
     @GetMapping("/user")
     public ResponseEntity<List<ProjectDTO>> getUserProjects() {
-        System.out.println("getUserProjects method called");
         // Obtenha o usuário atual do contexto de segurança
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();

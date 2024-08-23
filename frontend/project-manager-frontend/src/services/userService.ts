@@ -1,39 +1,61 @@
 import api from '@/lib/api';
+import {authService} from "@/services/authService";
 
 export interface UserData {
-  id?: number;
-  username: string;
-  email: string;
-  role?: string;
+    id?: number;
+    username: string;
+    email: string;
+    role?: string;
 }
 
 export const userService = {
-  getAllUsers: async (): Promise<UserData[]> => {
-    const response = await api.get('/users');
-    return response.data;
-  },
+    getAllUsers: async (): Promise<UserData[]> => {
+        try {
+            const response = await api.get('/users');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching all users:', error);
+            throw error;
+        }
+    },
 
-  getUserById: async (id: number): Promise<UserData> => {
-    const response = await api.get(`/users/${id}`);
-    return response.data;
-  },
+    getUserByUsername: async (username: string): Promise<UserData> => {
+        try {
+            const response = await api.get(`/users/username/${username}`);
+            return response.data;
+        } catch (error: any) {
+            console.error(`Error fetching user with username ${username}:`, error.response?.data || error.message);
+            throw error;
+        }
+    },
 
-  createUser: async (userData: Omit<UserData, 'id'>): Promise<UserData> => {
-    const response = await api.post('/users', userData);
-    return response.data;
-  },
+    getCurrentUser: async (): Promise<UserData> => {
+        const currentUsername = authService.getUsername();
+        if (!currentUsername) {
+            console.error('getCurrentUser: No username found');
+            throw new Error('User not authenticated');
+        }
+        try {
+            return await userService.getUserByUsername(currentUsername);
+        } catch (error: any) {
+            console.error('getCurrentUser: Error fetching current user:', error.response?.data || error.message);
+            throw error;
+        }
+    },
 
-  updateUser: async (id: number, userData: Partial<UserData>): Promise<UserData> => {
-    const response = await api.put(`/users/${id}`, userData);
-    return response.data;
-  },
+    updateCurrentUser: async (userData: Partial<UserData>): Promise<UserData> => {
+        const currentUserId = authService.getUsername();
+        if (!currentUserId) {
+            throw new Error('User not authenticated');
+        }
+        try {
+            const response = await api.put(`/users/${currentUserId}`, userData);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating current user:', error);
+            throw error;
+        }
+    },
 
-  deleteUser: async (id: number): Promise<void> => {
-    await api.delete(`/users/${id}`);
-  },
-
-  getCurrentUser: async (): Promise<UserData> => {
-    const response = await api.get('/users/me');
-    return response.data;
-  }
+    // Note: The changePassword method is not available in the current UserController.
 };

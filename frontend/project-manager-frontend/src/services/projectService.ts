@@ -2,10 +2,8 @@ import api from '@/lib/api';
 
 export interface ProjectData {
   name: string;
-  description: string;
   startDate: string;
   endDate: string;
-  status: string;
   teamMemberIds: number[];
 }
 

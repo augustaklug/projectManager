@@ -36,6 +36,12 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
+        UserDTO user = userService.getUserByUsername(username);
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/history")
     public ResponseEntity<List<UserHistory>> getUserHistory(@PathVariable Long id) {
         List<UserHistory> history = userService.getUserHistory(id);

@@ -2,21 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { projectService } from '@/services/projectService';
 import { userService, UserData } from '@/services/userService';
 
 const CreateProject = () => {
-  console.log('Rendering CreateProject component'); // Log para debug
-
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [status, setStatus] = useState('');
   const [teamMembers, setTeamMembers] = useState<number[]>([]);
   const [allUsers, setAllUsers] = useState<UserData[]>([]);
   const [error, setError] = useState('');
@@ -26,7 +20,6 @@ const CreateProject = () => {
     const fetchUsers = async () => {
       try {
         const users = await userService.getAllUsers();
-        console.log('Fetched users:', users); // Log para debug
         setAllUsers(users);
       } catch (err) {
         console.error('Error fetching users:', err);
@@ -43,10 +36,8 @@ const CreateProject = () => {
     try {
       const newProject = {
         name,
-        description,
         startDate,
         endDate,
-        status,
         teamMemberIds: teamMembers
       };
 
@@ -74,7 +65,26 @@ const CreateProject = () => {
               required
             />
           </div>
-          {/* Adicione os outros campos do formulário aqui */}
+          <div>
+            <label htmlFor="startDate" className="block text-sm font-medium">Start Date</label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium">End Date</label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium">Team Members</label>
             <div className="mt-2 space-y-2">
