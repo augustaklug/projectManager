@@ -1,4 +1,4 @@
-HELP.md
+backend/HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Backend
+backend/target/
+backend/.mvn/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
