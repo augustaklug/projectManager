@@ -67,37 +67,24 @@ public class TaskService {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CustomException("Tarefa não encontrada.", HttpStatus.NOT_FOUND));
 
-        try {
-            if (!Objects.equals(task.getName(), taskDTO.getName())) {
-                addToHistory(task, "name", task.getName(), taskDTO.getName());
-                task.setName(taskDTO.getName());
-            }
-            if (!Objects.equals(task.getDeadline(), taskDTO.getDeadline())) {
-                addToHistory(task, "deadline",
-                        task.getDeadline() != null ? task.getDeadline().toString() : "null",
-                        taskDTO.getDeadline() != null ? taskDTO.getDeadline().toString() : "null");
-                task.setDeadline(taskDTO.getDeadline());
-            }
-            if (!Objects.equals(task.getStatus(), taskDTO.getStatus())) {
-                addToHistory(task, "status", task.getStatus(), taskDTO.getStatus());
-                task.setStatus(taskDTO.getStatus());
-            }
-
-            if (taskDTO.getAssignedToId() != null &&
-                    !Objects.equals(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null, taskDTO.getAssignedToId())) {
-                User assignedUser = userRepository.findById(taskDTO.getAssignedToId())
-                        .orElseThrow(() -> new CustomException("Usuário atribuído não encontrado.", HttpStatus.NOT_FOUND));
-                addToHistory(task, "assignedTo",
-                        task.getAssignedTo() != null ? task.getAssignedTo().getUsername() : "null",
-                        assignedUser.getUsername());
-                task.setAssignedTo(assignedUser);
-            }
-
-            Task updatedTask = taskRepository.save(task);
-            return mapToDTO(updatedTask);
-        } catch (OptimisticLockingFailureException e) {
-            throw new CustomException("A tarefa foi modificada por outro usuário. Por favor, tente novamente.", HttpStatus.CONFLICT);
+        // Apenas atualize os campos que foram fornecidos no DTO
+        if (taskDTO.getName() != null) {
+            task.setName(taskDTO.getName());
         }
+        if (taskDTO.getStatus() != null) {
+            task.setStatus(taskDTO.getStatus());
+        }
+        if (taskDTO.getDeadline() != null) {
+            task.setDeadline(taskDTO.getDeadline());
+        }
+        if (taskDTO.getAssignedToId() != null) {
+            User assignedUser = userRepository.findById(taskDTO.getAssignedToId())
+                    .orElseThrow(() -> new CustomException("Usuário atribuído não encontrado.", HttpStatus.NOT_FOUND));
+            task.setAssignedTo(assignedUser);
+        }
+
+        Task updatedTask = taskRepository.save(task);
+        return mapToDTO(updatedTask);
     }
 
     @Transactional

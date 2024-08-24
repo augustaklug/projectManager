@@ -3,6 +3,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import AuthLayout from '@/components/layout/AuthLayout';
+import TaskList from '@/components/tasks/TaskList';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -20,8 +21,7 @@ export default function TasksPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-2xl font-bold mb-4">Tasks</h1>
-      {/* Adicione aqui o conteúdo da página de tarefas */}
+      <TaskList />
     </AuthLayout>
   );
 }

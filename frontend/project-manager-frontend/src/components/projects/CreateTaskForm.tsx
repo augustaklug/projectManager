@@ -96,11 +96,6 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ projectId, onTaskCreate
         onChange={(e) => setName(e.target.value)}
         required
       />
-      <Input
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
       <Select value={status} onValueChange={setStatus}>
         <SelectTrigger>
           <SelectValue placeholder="Status" />
@@ -108,7 +103,6 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ projectId, onTaskCreate
         <SelectContent>
           <SelectItem value="Not Started">Not Started</SelectItem>
           <SelectItem value="In Progress">In Progress</SelectItem>
-          <SelectItem value="Completed">Completed</SelectItem>
         </SelectContent>
       </Select>
       <Input
