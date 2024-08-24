@@ -39,4 +39,9 @@ public class Task {
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskHistory> history;
+
+    // Constructor to ensure version is always initialized
+    public Task() {
+        this.version = 0L;
+    }
 }

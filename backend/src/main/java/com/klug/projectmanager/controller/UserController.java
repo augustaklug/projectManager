@@ -30,7 +30,7 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         UserDTO user = userService.getUserById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
@@ -42,23 +42,21 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}/history")
-    public ResponseEntity<List<UserHistory>> getUserHistory(@PathVariable Long id) {
-        List<UserHistory> history = userService.getUserHistory(id);
+    @GetMapping("/{username}/history")
+    public ResponseEntity<List<UserHistory>> getUserHistory(@PathVariable String username) {
+        List<UserHistory> history = userService.getUserHistoryByUsername(username);
         return new ResponseEntity<>(history, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
-        UserDTO updatedUser = userService.updateUser(id, userDTO);
+    @PutMapping("/{username}")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable String username, @Valid @RequestBody UserDTO userDTO) {
+        UserDTO updatedUser = userService.updateUserByUsername(username, userDTO);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String username) {
+        userService.deleteUserByUsername(username);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-    // Outros métodos relacionados a usuários, como definir disponibilidade, preferências de notificação, etc.
 }

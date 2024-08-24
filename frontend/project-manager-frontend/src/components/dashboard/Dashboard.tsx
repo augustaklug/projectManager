@@ -9,8 +9,7 @@ import { AlertCircle } from "lucide-react";
 interface Project {
   id: number;
   name: string;
-  tasksCompleted: number;
-  totalTasks: number;
+  tasks: Task[];
 }
 
 interface Task {
@@ -45,6 +44,13 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  const calculateProjectProgress = (project: Project) => {
+    const totalTasks = project.tasks.length;
+    if (totalTasks === 0) return 0;
+    const completedTasks = project.tasks.filter(task => task.status === 'Completed').length;
+    return Math.round((completedTasks / totalTasks) * 100);
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -70,15 +76,18 @@ const Dashboard = () => {
         <CardContent>
           {projects.length > 0 ? (
             <div className="space-y-4">
-              {projects.map((project) => (
-                <div key={project.id} className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>{project.name}</span>
-                    <span>{project.tasksCompleted}/{project.totalTasks} tasks</span>
+              {projects.map((project) => {
+                const progress = calculateProjectProgress(project);
+                return (
+                  <div key={project.id} className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>{project.name}</span>
+                      <span>{progress}% Complete</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
                   </div>
-                  <Progress value={(project.tasksCompleted / project.totalTasks) * 100} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <NoDataAlert

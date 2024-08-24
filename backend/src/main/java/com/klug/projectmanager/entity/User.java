@@ -41,4 +41,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserHistory> history;
+
+    // Constructor to ensure version is always initialized
+    public User() {
+        this.version = 0L;
+    }
 }

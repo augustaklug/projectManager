@@ -27,7 +27,7 @@ public class Project {
     @Version
     private Long version;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "project_team_members",
             joinColumns = @JoinColumn(name = "project_id"),
@@ -46,5 +46,10 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectHistory> history;
+
+    // Add a default constructor
+    public Project() {
+        this.version = 0L; // Initialize version to 0
+    }
 }
 

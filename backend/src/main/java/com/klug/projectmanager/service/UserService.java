@@ -97,7 +97,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUserById(Long id) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
         user.setDeleted(true);
@@ -133,21 +133,52 @@ public class UserService {
         return userHistoryRepository.findByUserIdOrderByChangeDateDesc(userId);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsernameAndIsDeletedFalse(username);
-    }
-
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsernameAndIsDeletedFalse(username);
-    }
-
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmailAndIsDeletedFalse(email);
-    }
-
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.getByUsername(username)
                 .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
         return mapToDTO(user);
+    }
+
+    @Transactional
+    public UserDTO updateUserByUsername(String username, UserDTO userDTO) {
+        User user = userRepository.findByUsernameAndIsDeletedFalse(username);
+        if (user == null) {
+            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            if (!Objects.equals(user.getEmail(), userDTO.getEmail())) {
+                addToHistory(user, "email", user.getEmail(), userDTO.getEmail());
+                user.setEmail(userDTO.getEmail());
+            }
+            if (!Objects.equals(user.getRole(), userDTO.getRole())) {
+                addToHistory(user, "role", user.getRole(), userDTO.getRole());
+                user.setRole(userDTO.getRole());
+            }
+
+            User updatedUser = userRepository.save(user);
+            return mapToDTO(updatedUser);
+        } catch (OptimisticLockingFailureException e) {
+            throw new CustomException("O usuário foi modificado por outra operação. Por favor, tente novamente.", HttpStatus.CONFLICT);
+        }
+    }
+
+    @Transactional
+    public void deleteUserByUsername(String username) {
+        User user = userRepository.findByUsernameAndIsDeletedFalse(username);
+        if (user == null) {
+            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+        }
+        user.setDeleted(true);
+        userRepository.save(user);
+        addToHistory(user, "isDeleted", "false", "true");
+    }
+
+    public List<UserHistory> getUserHistoryByUsername(String username) {
+        User user = userRepository.findByUsernameAndIsDeletedFalse(username);
+        if (user == null) {
+            throw new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+        }
+        return userHistoryRepository.findByUserIdOrderByChangeDateDesc(user.getId());
     }
 }

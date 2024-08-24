@@ -1,25 +1,23 @@
-import React, {useState, useEffect} from 'react';
-import {useRouter} from 'next/navigation';
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {userService, UserData} from '@/services/userService';
-import {useAuth} from '@/hooks/useAuth';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { userService, UserData } from '@/services/userService';
+import { useAuth } from '@/hooks/useAuth';
+import { User, Mail, Briefcase } from 'lucide-react';
 
 const Profile = () => {
     const [profile, setProfile] = useState<UserData | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editedProfile, setEditedProfile] = useState<Partial<UserData>>({});
     const [error, setError] = useState('');
-    const {logout} = useAuth();
+    const { logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const data = await userService.getCurrentUser();
+                console.log('Fetched profile:', data);
                 setProfile(data);
-                setEditedProfile(data);
             } catch (err) {
                 console.error('Error fetching profile:', err);
                 if (err instanceof Error) {
@@ -38,44 +36,27 @@ const Profile = () => {
         fetchProfile();
     }, [logout]);
 
-    const handleEdit = () => {
-        setIsEditing(true);
-    };
-
-    const handleSave = async () => {
-        try {
-            const updatedProfile = await userService.updateCurrentUser(editedProfile);
-            setProfile(updatedProfile);
-            setIsEditing(false);
-            setError('');
-        } catch (err) {
-            console.error('Error updating profile:', err);
-            if (err instanceof Error && err.message === 'Invalid user ID') {
-                setError('Your session has expired. Please log in again.');
-                logout();
-            } else {
-                setError('Failed to update profile. Please try again.');
-            }
+    const getFriendlyRoleName = (role: string | undefined): string => {
+        if (!role) return 'Not set';
+        switch (role) {
+            case 'ROLE_ADMIN':
+                return 'Administrator';
+            case 'ROLE_USER':
+                return 'User';
+            case 'ROLE_MANAGER':
+                return 'Manager';
+            default:
+                return role.replace('ROLE_', '').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
         }
-    };
-
-    const handleCancel = () => {
-        setEditedProfile(profile || {});
-        setIsEditing(false);
-        setError('');
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEditedProfile({...editedProfile, [e.target.name]: e.target.value});
     };
 
     if (error) {
         return (
             <Card className="w-[600px] mx-auto">
-                <CardContent>
+                <CardContent className="pt-6">
                     <p className="text-red-500">{error}</p>
                     {error.includes('session has expired') && (
-                        <Button onClick={() => router.push('/login')}>Log In Again</Button>
+                        <Button onClick={() => router.push('/login')} className="mt-4">Log In Again</Button>
                     )}
                 </CardContent>
             </Card>
@@ -83,23 +64,36 @@ const Profile = () => {
     }
 
     if (!profile) {
-        return <div>Loading profile...</div>;
+        return <div className="text-center">Loading profile...</div>;
     }
 
     return (
         <Card className="w-[600px] mx-auto">
             <CardHeader>
-                <CardTitle>User Profile</CardTitle>
+                <CardTitle className="text-2xl font-bold">User Profile</CardTitle>
             </CardHeader>
-            <CardContent>
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                {profile ? (
-                    <form>
-                        {/* ... form fields ... */}
-                    </form>
-                ) : (
-                    <p>Loading profile...</p>
-                )}
+            <CardContent className="space-y-6">
+                <div className="flex items-center space-x-4">
+                    <User className="h-6 w-6 text-gray-400"/>
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Username</p>
+                        <p className="text-lg font-semibold">{profile.username}</p>
+                    </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                    <Mail className="h-6 w-6 text-gray-400"/>
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Email</p>
+                        <p className="text-lg font-semibold">{profile.email || 'Not set'}</p>
+                    </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                    <Briefcase className="h-6 w-6 text-gray-400"/>
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Role</p>
+                        <p className="text-lg font-semibold">{getFriendlyRoleName(profile.role)}</p>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );

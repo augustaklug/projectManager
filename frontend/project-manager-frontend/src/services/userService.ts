@@ -1,5 +1,7 @@
 import api from '@/lib/api';
 import {authService} from "@/services/authService";
+import {useRouter} from 'next/router';
+import {useEffect} from 'react';
 
 export interface UserData {
     id?: number;
@@ -7,6 +9,8 @@ export interface UserData {
     email: string;
     role?: string;
 }
+
+let cachedCurrentUser: UserData | null = null;
 
 export const userService = {
     getAllUsers: async (): Promise<UserData[]> => {
@@ -29,33 +33,78 @@ export const userService = {
         }
     },
 
+    getUserById: async (id: number): Promise<UserData> => {
+        try {
+            const response = await api.get(`/users/id/${id}`);
+            return response.data;
+        } catch (error: any) {
+            console.error(`Error fetching user with id ${id}:`, error.response?.data || error.message);
+            throw error;
+        }
+    },
+
     getCurrentUser: async (): Promise<UserData> => {
+        if (cachedCurrentUser) {
+            return cachedCurrentUser;
+        }
+
         const currentUsername = authService.getUsername();
         if (!currentUsername) {
             console.error('getCurrentUser: No username found');
             throw new Error('User not authenticated');
         }
+
         try {
-            return await userService.getUserByUsername(currentUsername);
+            cachedCurrentUser = await userService.getUserByUsername(currentUsername);
+            return cachedCurrentUser;
         } catch (error: any) {
             console.error('getCurrentUser: Error fetching current user:', error.response?.data || error.message);
             throw error;
         }
     },
 
-    updateCurrentUser: async (userData: Partial<UserData>): Promise<UserData> => {
-        const currentUserId = authService.getUsername();
-        if (!currentUserId) {
-            throw new Error('User not authenticated');
-        }
+    updateUser: async (username: string, userData: Partial<UserData>): Promise<UserData> => {
         try {
-            const response = await api.put(`/users/${currentUserId}`, userData);
+            const response = await api.put(`/users/${username}`, userData);
             return response.data;
         } catch (error) {
-            console.error('Error updating current user:', error);
+            console.error('Error updating user:', error);
             throw error;
         }
     },
 
-    // Note: The changePassword method is not available in the current UserController.
+    deleteUser: async (username: string): Promise<void> => {
+        try {
+            await api.delete(`/users/${username}`);
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            throw error;
+        }
+    },
+
+    getUserHistory: async (username: string): Promise<any[]> => {
+        try {
+            const response = await api.get(`/users/${username}/history`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching user history:', error);
+            throw error;
+        }
+    },
+
+    invalidateCurrentUserCache: () => {
+        cachedCurrentUser = null;
+    }
 };
+
+export const useInvalidateUserCacheOnProfileRoute = () => {
+    const router = useRouter();
+
+    useEffect(() => {
+        if (router.pathname === '/profile') {
+            userService.invalidateCurrentUserCache();
+        }
+    }, [router.pathname]);
+};
+
+export default userService;

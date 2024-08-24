@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { projectService } from '@/services/projectService';
 import { taskService } from '@/services/taskService';
+import CreateTaskForm from './CreateTaskForm';
 
 interface Task {
   id: number;
@@ -29,20 +30,21 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateTaskForm, setShowCreateTaskForm] = useState(false);
+
+  const fetchProjectDetails = async () => {
+    try {
+      const projectData = await projectService.getProjectById(projectId);
+      setProject(projectData);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching project details:', err);
+      setError('Failed to fetch project details. Please try again.');
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProjectDetails = async () => {
-      try {
-        const projectData = await projectService.getProjectById(projectId);
-        setProject(projectData);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching project details:', err);
-        setError('Failed to fetch project details. Please try again.');
-        setLoading(false);
-      }
-    };
-
     fetchProjectDetails();
   }, [projectId]);
 
@@ -59,6 +61,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
       case 'Not Started': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
+  };
+
+  const handleTaskCreated = () => {
+    setShowCreateTaskForm(false);
+    fetchProjectDetails();
   };
 
   if (loading) return <div>Loading project details...</div>;
@@ -101,7 +108,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
           ) : (
             <p>No tasks for this project yet.</p>
           )}
-          <Button className="mt-4">Add New Task</Button>
+          <Button className="mt-4" onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}>
+            {showCreateTaskForm ? 'Cancel' : 'Add New Task'}
+          </Button>
+          {showCreateTaskForm && (
+            <div className="mt-4">
+              <CreateTaskForm projectId={projectId} onTaskCreated={handleTaskCreated} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

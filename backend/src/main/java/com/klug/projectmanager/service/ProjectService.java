@@ -69,7 +69,7 @@ public class ProjectService {
 
     public ProjectDTO getProjectById(Long id) {
         Project project = projectRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new CustomException("Projeto não encontrado.", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new RuntimeException("Project not found"));
         return mapToDTO(project);
     }
 
@@ -134,7 +134,15 @@ public class ProjectService {
     }
 
     private ProjectDTO mapToDTO(Project project) {
-        return modelMapper.map(project, ProjectDTO.class);
+        ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
+        if (project.getTeamMembers() != null && !project.getTeamMembers().isEmpty()) {
+            dto.setTeamMemberIds(project.getTeamMembers().stream()
+                    .map(User::getId)
+                    .toArray(Long[]::new));
+        } else {
+            dto.setTeamMemberIds(new Long[0]); // Set empty array instead of null
+        }
+        return dto;
     }
 
     private Project mapToEntity(ProjectDTO projectDTO) {

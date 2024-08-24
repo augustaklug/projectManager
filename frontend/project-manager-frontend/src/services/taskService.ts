@@ -1,5 +1,14 @@
 import api from '@/lib/api';
 
+export interface TaskData {
+  name: string;
+  description?: string;
+  status: string;
+  deadline?: string;
+  projectId: number;
+  assignedToId?: number;
+}
+
 export const taskService = {
   getAllTasks: async () => {
     const response = await api.get('/tasks');
@@ -16,12 +25,12 @@ export const taskService = {
     return response.data;
   },
 
-  createTask: async (taskData: any) => {
+  createTask: async (taskData: TaskData) => {
     const response = await api.post('/tasks', taskData);
     return response.data;
   },
 
-  updateTask: async (id: number, taskData: any) => {
+  updateTask: async (id: number, taskData: Partial<TaskData>) => {
     const response = await api.put(`/tasks/${id}`, taskData);
     return response.data;
   },
