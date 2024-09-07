@@ -35,12 +35,10 @@ public class Task {
     private User assignedTo;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Note> notes;
-
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskHistory> history;
 
-    // Constructor to ensure version is always initialized
+    // Construtor, getters e setters são gerenciados pelo Lombok (@Data)
+
     public Task() {
         this.version = 0L;
     }

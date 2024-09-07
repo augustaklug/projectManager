@@ -1,6 +1,7 @@
 package com.klug.projectmanager.controller;
 
 import com.klug.projectmanager.dto.ProjectDTO;
+import com.klug.projectmanager.dto.NoteDTO;
 import com.klug.projectmanager.entity.ProjectHistory;
 import com.klug.projectmanager.service.ProjectService;
 import jakarta.validation.Valid;
@@ -66,5 +67,31 @@ public class ProjectController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // Outros métodos relacionados a projetos, como exportar relatórios, gerenciar marcos, etc.
+    // Criar uma nota para um projeto específico
+    @PostMapping("/{projectId}/notes")
+    public ResponseEntity<NoteDTO> addNoteToProject(@PathVariable Long projectId, @Valid @RequestBody NoteDTO noteDTO) {
+        NoteDTO createdNote = projectService.addNoteToProject(projectId, noteDTO);
+        return new ResponseEntity<>(createdNote, HttpStatus.CREATED);
+    }
+
+    // Listar todas as notas para um projeto específico
+    @GetMapping("/{projectId}/notes")
+    public ResponseEntity<List<NoteDTO>> getNotesForProject(@PathVariable Long projectId) {
+        List<NoteDTO> notes = projectService.getProjectNotes(projectId);
+        return new ResponseEntity<>(notes, HttpStatus.OK);
+    }
+
+    // Atualizar uma nota de um projeto específico
+    @PutMapping("/{projectId}/notes/{noteId}")
+    public ResponseEntity<NoteDTO> updateProjectNote(@PathVariable Long projectId, @PathVariable Long noteId, @Valid @RequestBody NoteDTO noteDTO) {
+        NoteDTO updatedNote = projectService.updateProjectNote(projectId, noteId, noteDTO);
+        return new ResponseEntity<>(updatedNote, HttpStatus.OK);
+    }
+
+    // Deletar uma nota de um projeto específico
+    @DeleteMapping("/notes/{noteId}")
+    public ResponseEntity<Void> deleteProjectNote(@PathVariable Long noteId) {
+        projectService.deleteProjectNote(noteId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

@@ -39,17 +39,14 @@ public class Project {
     private List<Task> tasks;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Note> notes;
-
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> chatMessages;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectHistory> history;
 
-    // Add a default constructor
+    // Construtor, getters e setters são gerenciados pelo Lombok (@Data)
+
     public Project() {
         this.version = 0L; // Initialize version to 0
     }
 }
-

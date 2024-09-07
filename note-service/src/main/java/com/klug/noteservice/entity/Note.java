@@ -1,4 +1,4 @@
-package com.klug.projectmanager.entity;
+package com.klug.noteservice.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,11 +17,7 @@ public class Note {
 
     private LocalDateTime lastUpdated;
 
-    @ManyToOne
-    @JoinColumn(name = "task_id")
-    private Task task;
+    private Long taskId;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
+    private Long projectId;
 }

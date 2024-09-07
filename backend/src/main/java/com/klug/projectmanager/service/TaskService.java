@@ -1,5 +1,7 @@
 package com.klug.projectmanager.service;
 
+import com.klug.projectmanager.client.NoteClient;
+import com.klug.projectmanager.dto.NoteDTO;
 import com.klug.projectmanager.dto.TaskDTO;
 import com.klug.projectmanager.entity.Task;
 import com.klug.projectmanager.entity.TaskHistory;
@@ -10,7 +12,6 @@ import com.klug.projectmanager.repository.TaskHistoryRepository;
 import com.klug.projectmanager.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +37,9 @@ public class TaskService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private NoteClient noteClient;
 
     @Transactional
     public TaskDTO createTask(TaskDTO taskDTO) {
@@ -134,5 +137,23 @@ public class TaskService {
         return tasks.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<NoteDTO> getTaskNotes(Long taskId) {
+        return noteClient.getNotesByTaskId(taskId);
+    }
+
+    public NoteDTO addNoteToTask(Long taskId, NoteDTO noteDTO) {
+        noteDTO.setTaskId(taskId);
+        return noteClient.createNote(noteDTO);
+    }
+
+    public NoteDTO updateTaskNote(Long taskId, Long noteId, NoteDTO noteDTO) {
+        noteDTO.setTaskId(taskId);
+        return noteClient.updateNote(noteId, noteDTO);
+    }
+
+    public void deleteTaskNote(Long noteId) {
+        noteClient.deleteNote(noteId);
     }
 }

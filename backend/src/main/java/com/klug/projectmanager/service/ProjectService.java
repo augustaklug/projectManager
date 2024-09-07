@@ -1,5 +1,7 @@
 package com.klug.projectmanager.service;
 
+import com.klug.projectmanager.client.NoteClient;
+import com.klug.projectmanager.dto.NoteDTO;
 import com.klug.projectmanager.dto.ProjectDTO;
 import com.klug.projectmanager.entity.Project;
 import com.klug.projectmanager.entity.ProjectHistory;
@@ -38,6 +40,9 @@ public class ProjectService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private NoteClient noteClient;
 
     @Transactional
     public ProjectDTO createProject(ProjectDTO projectDTO) {
@@ -163,5 +168,23 @@ public class ProjectService {
         return projects.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<NoteDTO> getProjectNotes(Long projectId) {
+        return noteClient.getNotesByProjectId(projectId);
+    }
+
+    public NoteDTO addNoteToProject(Long projectId, NoteDTO noteDTO) {
+        noteDTO.setProjectId(projectId);
+        return noteClient.createNote(noteDTO);
+    }
+
+    public NoteDTO updateProjectNote(Long projectId, Long noteId, NoteDTO noteDTO) {
+        noteDTO.setProjectId(projectId);
+        return noteClient.updateNote(noteId, noteDTO);
+    }
+
+    public void deleteProjectNote(Long noteId) {
+        noteClient.deleteNote(noteId);
     }
 }

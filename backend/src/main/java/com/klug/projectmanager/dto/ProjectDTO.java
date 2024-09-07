@@ -13,6 +13,5 @@ public class ProjectDTO {
     private LocalDate endDate;
     private Long[] teamMemberIds;
     private List<TaskDTO> tasks;
-    private List<NoteDTO> notes;
     private List<ChatMessageDTO> chatMessages;
 }

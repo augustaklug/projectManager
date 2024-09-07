@@ -5,29 +5,17 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { projectService } from '@/services/projectService';
 import { taskService } from '@/services/taskService';
+import { ProjectData } from '@/types/project';
+import { TaskData } from '@/types/task';
+import NoteList from '@/components/notes/NoteList';
 import CreateTaskForm from './CreateTaskForm';
-
-interface Task {
-  id: number;
-  name: string;
-  status: string;
-  deadline: string;
-}
-
-interface Project {
-  id: number;
-  name: string;
-  startDate: string;
-  endDate: string;
-  tasks: Task[];
-}
 
 interface ProjectDetailsProps {
   projectId: number;
 }
 
 const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<ProjectData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false);
@@ -50,11 +38,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
 
   const getProjectProgress = () => {
     if (!project || project.tasks.length === 0) return 0;
-    const completedTasks = project.tasks.filter(task => task.status === 'Completed').length;
+    const completedTasks = project.tasks.filter((task: { status: string; }) => task.status === 'Completed').length;
     return (completedTasks / project.tasks.length) * 100;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<React.AwaitedReactNode> | null | undefined) => {
     switch (status) {
       case 'Completed': return 'bg-green-500';
       case 'In Progress': return 'bg-yellow-500';
@@ -95,7 +83,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
         <CardContent>
           {project.tasks.length > 0 ? (
             <ul className="space-y-4">
-              {project.tasks.map((task) => (
+              {project.tasks.map((task: { id: React.Key | null | undefined; name: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; status: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<React.AwaitedReactNode> | null | undefined; deadline: string | number | Date; }) => (
                 <li key={task.id} className="flex justify-between items-center">
                   <span>{task.name}</span>
                   <div>
@@ -116,6 +104,15 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
               <CreateTaskForm projectId={projectId} onTaskCreated={handleTaskCreated} />
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Notes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NoteList parentId={projectId} parentType="project" />
         </CardContent>
       </Card>
     </div>
