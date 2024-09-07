@@ -4,9 +4,11 @@ import com.klug.noteservice.entity.Note;
 import com.klug.noteservice.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/notes")
@@ -33,7 +35,11 @@ public class NoteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
-        return ResponseEntity.ok(noteService.getNoteById(id));
+        try {
+            return ResponseEntity.ok(noteService.getNoteById(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/task/{taskId}")
@@ -44,5 +50,15 @@ public class NoteController {
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<Note>> getNotesByProjectId(@PathVariable Long projectId) {
         return ResponseEntity.ok(noteService.getNotesByProjectId(projectId));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.toList());
+        return ResponseEntity.badRequest().body(errors);
     }
 }

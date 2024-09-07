@@ -26,7 +26,7 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
                 ? await projectService.getProjectNotes(parentId)
                 : await taskService.getTaskNotes(parentId);
 
-            console.log("Fetched notes:", fetchedNotes);  // Verificar os dados recebidos
+            console.log("Fetched notes:", fetchedNotes);
             setNotes(fetchedNotes);
         } catch (error) {
             console.error('Error fetching notes:', error);
@@ -36,9 +36,8 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
     const formatDate = (dateArray: number[] | undefined) => {
         if (!dateArray || !Array.isArray(dateArray)) return 'Unknown';
 
-        // Criar uma nova data a partir do array de números
         const [year, month, day, hour, minute, second] = dateArray;
-        const date = new Date(year, month - 1, day, hour, minute, second); // O mês é baseado em zero no JS
+        const date = new Date(year, month - 1, day, hour, minute, second);
 
         return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
@@ -89,31 +88,32 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
                     parentType={parentType}
                 />
             )}
-            {notes.map(note => (
-                <Card key={note.id}>
-                    <CardHeader>
-                        <CardTitle>Note {note.id}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p>{note.content}</p>
-                        <p className="text-sm text-gray-500">Last Updated: {formatDate(note.lastUpdated)}</p>
-                        {editingNoteId === note.id ? (
-                            <NoteForm
-                                note={note}
-                                onSubmit={handleUpdateNote}
-                                onCancel={() => setEditingNoteId(null)}
-                                parentId={parentId}
-                                parentType={parentType}
-                            />
-                        ) : (
-                            <div className="mt-2">
-                                <Button onClick={() => setEditingNoteId(note.id!)}>Edit</Button>
-                                <Button variant="destructive" onClick={() => handleDeleteNote(note.id!)}>Delete</Button>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {notes.map(note => (
+                    <Card key={note.id} className="flex flex-col h-full">
+                        <CardHeader className="flex-grow">
+                            <CardTitle className="text-lg">{note.content}</CardTitle>
+                            <p className="text-sm text-gray-500">Last Updated: {formatDate(note.lastUpdated)}</p>
+                        </CardHeader>
+                        <CardContent>
+                            {editingNoteId === note.id ? (
+                                <NoteForm
+                                    note={note}
+                                    onSubmit={handleUpdateNote}
+                                    onCancel={() => setEditingNoteId(null)}
+                                    parentId={parentId}
+                                    parentType={parentType}
+                                />
+                            ) : (
+                                <div className="flex justify-between mt-2">
+                                    <Button size="sm" onClick={() => setEditingNoteId(note.id!)}>Edit</Button>
+                                    <Button size="sm" variant="destructive" onClick={() => handleDeleteNote(note.id!)}>Delete</Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
         </div>
     );
 };
