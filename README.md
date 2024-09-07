@@ -27,6 +27,7 @@ Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da 
 - Spring Data JPA
 - MySQL
 - JWT para autenticação
+- Spring Cloud para microsserviços
 
 ### Frontend
 - React 18
@@ -35,6 +36,14 @@ Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da 
 - Tailwind CSS
 - Componentes UI Shadcn
 
+## Arquitetura de Microsserviços
+
+O projeto agora inclui uma arquitetura de microsserviços:
+
+- **Serviço Principal**: Gerencia projetos, tarefas e usuários
+- **NoteService**: Microsserviço dedicado ao gerenciamento de notas
+- **EurekaServer**: Servidor de descoberta de serviços
+- 
 ## Instalação
 
 ### Pré-requisitos
@@ -59,8 +68,20 @@ Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da 
     spring.datasource.username=seu_usuario
     spring.datasource.password=sua_senha
     ```
+    
+3. Execute o EurekaServer:
+    ```bash
+    cd ../eureka-server
+    mvn spring-boot:run
+    ```
 
-3. Compile e execute o backend:
+4. Execute o NoteService:
+    ```bash
+    cd ../note-service
+    mvn spring-boot:run
+    ```
+
+5. Compile e execute o backend:
     ```bash
     mvn spring-boot:run
     ```
@@ -79,12 +100,12 @@ Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da 
 
 3. Inicie o servidor frontend:
     ```bash
-    npm start
+    npm run dev
     ```
 
 ### Executando a Aplicação
 
-Após configurar o backend e o frontend, abra o navegador e acesse `http://localhost:3000` para utilizar a aplicação.
+Após configurar o backend, os microsserviços e o frontend, abra o navegador e acesse `http://localhost:3000` para utilizar a aplicação.
 
 ## Estrutura do Projeto
 
@@ -98,6 +119,14 @@ Após configurar o backend e o frontend, abra o navegador e acesse `http://local
   - `repository/`: Repositórios JPA
   - `security/`: Configurações de segurança e utilitários JWT
   - `service/`: Serviços de lógica de negócios
+  - `client/`: Clientes Feign para comunicação com microsserviços
+
+### NoteService
+- `src/main/java/com/klug/noteservice/`
+  - `controller/`: Controladores da API REST para notas
+  - `entity/`: Entidade Note
+  - `repository/`: Repositório para notas
+  - `service/`: Serviço de lógica de negócios para notas
 
 ### Frontend
 - `src/`
