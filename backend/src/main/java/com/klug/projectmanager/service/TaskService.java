@@ -1,6 +1,6 @@
 package com.klug.projectmanager.service;
 
-import com.klug.projectmanager.client.NoteClient;
+import com.klug.projectmanager.messaging.NoteMessageSender;
 import com.klug.projectmanager.dto.NoteDTO;
 import com.klug.projectmanager.dto.TaskDTO;
 import com.klug.projectmanager.entity.Task;
@@ -39,7 +39,7 @@ public class TaskService {
     private ModelMapper modelMapper;
 
     @Autowired
-    private NoteClient noteClient;
+    private NoteMessageSender noteMessageSender;
 
     @Transactional
     public TaskDTO createTask(TaskDTO taskDTO) {
@@ -140,20 +140,20 @@ public class TaskService {
     }
 
     public List<NoteDTO> getTaskNotes(Long taskId) {
-        return noteClient.getNotesByTaskId(taskId);
+        return noteMessageSender.getNotesByTaskId(taskId);
     }
 
     public NoteDTO addNoteToTask(Long taskId, NoteDTO noteDTO) {
         noteDTO.setTaskId(taskId);
-        return noteClient.createNote(noteDTO);
+        return noteMessageSender.createNote(noteDTO);
     }
 
     public NoteDTO updateTaskNote(Long taskId, Long noteId, NoteDTO noteDTO) {
         noteDTO.setTaskId(taskId);
-        return noteClient.updateNote(noteId, noteDTO);
+        return noteMessageSender.updateNote(noteId, noteDTO);
     }
 
     public void deleteTaskNote(Long noteId) {
-        noteClient.deleteNote(noteId);
+        noteMessageSender.deleteNote(noteId);
     }
 }

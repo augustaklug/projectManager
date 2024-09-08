@@ -1,12 +1,15 @@
 package com.klug.noteservice.service;
 
+import com.klug.noteservice.dto.NoteDTO;
 import com.klug.noteservice.entity.Note;
 import com.klug.noteservice.repository.NoteRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NoteService {
@@ -14,35 +17,50 @@ public class NoteService {
     @Autowired
     private NoteRepository noteRepository;
 
-    public Note createNote(Note note) {
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public NoteDTO createNote(NoteDTO noteDTO) {
+        Note note = modelMapper.map(noteDTO, Note.class);
         note.setLastUpdated(LocalDateTime.now());
-        return noteRepository.save(note);
+        Note savedNote = noteRepository.save(note);
+        return modelMapper.map(savedNote, NoteDTO.class);
     }
 
-    public Note updateNote(Long id, Note noteDetails) {
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found with id " + id));
+    public NoteDTO updateNote(Long id, NoteDTO noteDTO) {
+        Note existingNote = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
 
-        note.setContent(noteDetails.getContent());
-        note.setLastUpdated(LocalDateTime.now());
+        // Atualize os campos, mas mantenha o ID original
+        modelMapper.map(noteDTO, existingNote);
+        existingNote.setId(id);
+        existingNote.setLastUpdated(LocalDateTime.now());
 
-        return noteRepository.save(note);
+        Note updatedNote = noteRepository.save(existingNote);
+        return modelMapper.map(updatedNote, NoteDTO.class);
     }
 
     public void deleteNote(Long id) {
         noteRepository.deleteById(id);
     }
 
-    public Note getNoteById(Long id) {
-        return noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found with id " + id));
+    public NoteDTO getNoteById(Long id) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+        return modelMapper.map(note, NoteDTO.class);
     }
 
-    public List<Note> getNotesByTaskId(Long taskId) {
-        return noteRepository.findByTaskId(taskId);
+    public List<NoteDTO> getNotesByTaskId(Long taskId) {
+        List<Note> notes = noteRepository.findByTaskId(taskId);
+        return notes.stream()
+                .map(note -> modelMapper.map(note, NoteDTO.class))
+                .collect(Collectors.toList());
     }
 
-    public List<Note> getNotesByProjectId(Long projectId) {
-        return noteRepository.findByProjectId(projectId);
+    public List<NoteDTO> getNotesByProjectId(Long projectId) {
+        List<Note> notes = noteRepository.findByProjectId(projectId);
+        return notes.stream()
+                .map(note -> modelMapper.map(note, NoteDTO.class))
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,6 @@
 package com.klug.projectmanager.integration;
 
-import com.klug.projectmanager.client.NoteClient;
+import com.klug.projectmanager.messaging.NoteMessageSender;
 import com.klug.projectmanager.dto.NoteDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class NoteServiceIntegrationTest {
 
     @Autowired
-    private NoteClient noteClient;
+    private NoteMessageSender noteMessageSender;
 
     @Test
     public void testCreateAndGetNote() {
@@ -26,7 +26,7 @@ public class NoteServiceIntegrationTest {
         noteDTO.setProjectId(1L);
 
         // Act
-        NoteDTO createdNote = noteClient.createNote(noteDTO);
+        NoteDTO createdNote = noteMessageSender.createNote(noteDTO);
 
         // Assert
         assertNotNull(createdNote);
@@ -35,7 +35,7 @@ public class NoteServiceIntegrationTest {
         assertEquals(1L, createdNote.getProjectId());
 
         // Get the created note
-        NoteDTO retrievedNote = noteClient.getNoteById(createdNote.getId());
+        NoteDTO retrievedNote = noteMessageSender.getNoteById(createdNote.getId());
         assertEquals(createdNote.getId(), retrievedNote.getId());
         assertEquals(createdNote.getContent(), retrievedNote.getContent());
     }
@@ -51,11 +51,11 @@ public class NoteServiceIntegrationTest {
         noteDTO2.setContent("Note 2");
         noteDTO2.setProjectId(projectId);
 
-        noteClient.createNote(noteDTO1);
-        noteClient.createNote(noteDTO2);
+        noteMessageSender.createNote(noteDTO1);
+        noteMessageSender.createNote(noteDTO2);
 
         // Act
-        List<NoteDTO> notes = noteClient.getNotesByProjectId(projectId);
+        List<NoteDTO> notes = noteMessageSender.getNotesByProjectId(projectId);
 
         // Assert
         assertNotNull(notes);
@@ -70,11 +70,11 @@ public class NoteServiceIntegrationTest {
         NoteDTO noteDTO = new NoteDTO();
         noteDTO.setContent("Original Note");
         noteDTO.setProjectId(1L);
-        NoteDTO createdNote = noteClient.createNote(noteDTO);
+        NoteDTO createdNote = noteMessageSender.createNote(noteDTO);
 
         // Act
         createdNote.setContent("Updated Note");
-        NoteDTO updatedNote = noteClient.updateNote(createdNote.getId(), createdNote);
+        NoteDTO updatedNote = noteMessageSender.updateNote(createdNote.getId(), createdNote);
 
         // Assert
         assertNotNull(updatedNote);
@@ -88,12 +88,12 @@ public class NoteServiceIntegrationTest {
         NoteDTO noteDTO = new NoteDTO();
         noteDTO.setContent("Note to Delete");
         noteDTO.setProjectId(1L);
-        NoteDTO createdNote = noteClient.createNote(noteDTO);
+        NoteDTO createdNote = noteMessageSender.createNote(noteDTO);
 
         // Act & Assert
-        assertDoesNotThrow(() -> noteClient.deleteNote(createdNote.getId()));
+        assertDoesNotThrow(() -> noteMessageSender.deleteNote(createdNote.getId()));
 
         // Verify deletion
-        assertThrows(RuntimeException.class, () -> noteClient.getNoteById(createdNote.getId()));
+        assertThrows(RuntimeException.class, () -> noteMessageSender.getNoteById(createdNote.getId()));
     }
 }
