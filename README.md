@@ -38,24 +38,101 @@ Desenvolvido como projeto para o bloco "Engenharia de Softwares Escaláveis" da 
 - Tailwind CSS
 - Componentes UI Shadcn
 
+### Containerização e Orquestração
+- Docker
+- Docker Compose
+
 ## Arquitetura de Microsserviços e Eventos
 
-O projeto agora utiliza uma arquitetura de microsserviços orientada a eventos:
+O projeto utiliza uma arquitetura de microsserviços orientada a eventos:
 
 - **Serviço Principal**: Gerencia projetos, tarefas e usuários
 - **NoteService**: Microsserviço dedicado ao gerenciamento de notas
 - **EurekaServer**: Servidor de descoberta de serviços
 - **RabbitMQ**: Message broker para comunicação assíncrona entre serviços
 
-## Instalação
+## Instalação e Execução com Docker
 
 ### Pré-requisitos
 
-- Java JDK 21 ou superior
-- Maven
-- Node.js (v14 ou superior) e npm ou yarn
-- MySQL
-- RabbitMQ
+- Docker
+- Docker Compose
+
+### Passos para Execução
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/project-manager.git
+   cd project-manager
+   ```
+
+2. Construa e inicie os containers:
+   ```bash
+   docker-compose up --build
+   ```
+
+   Este comando irá construir as imagens Docker para todos os serviços e iniciá-los.
+
+3. Acesse a aplicação:
+   Abra o navegador e acesse `http://localhost:3000` para utilizar a aplicação.
+
+### Parando os Serviços
+
+Para parar todos os serviços:
+
+```bash
+docker-compose down
+```
+
+## Estrutura do Projeto
+
+### Backend
+- `src/main/java/com/klug/projectmanager/`
+  - `config/`: Classes de configuração, incluindo RabbitMQConfig
+  - `controller/`: Controladores da API REST
+  - `dto/`: Objetos de Transferência de Dados
+  - `entity/`: Entidades JPA
+  - `exception/`: Exceções personalizadas e manipuladores
+  - `repository/`: Repositórios JPA
+  - `security/`: Configurações de segurança e utilitários JWT
+  - `service/`: Serviços de lógica de negócios
+  - `messaging/`: Classes relacionadas à comunicação via RabbitMQ
+
+### NoteService
+- `src/main/java/com/klug/noteservice/`
+  - `config/`: Configurações, incluindo RabbitMQConfig
+  - `dto/`: DTOs para notas
+  - `entity/`: Entidade Note
+  - `repository/`: Repositório para notas
+  - `service/`: Serviço de lógica de negócios para notas
+  - `messaging/`: Handlers para processamento de mensagens RabbitMQ
+
+### Frontend
+- `src/`
+  - `app/`: Páginas e roteamento do Next.js
+  - `components/`: Componentes React
+  - `hooks/`: Hooks React personalizados
+  - `lib/`: Funções utilitárias
+  - `services/`: Funções de serviço da API
+
+## Arquitetura Orientada a Eventos
+
+O sistema utiliza uma arquitetura orientada a eventos para comunicação entre o serviço principal e o microsserviço de notas:
+
+- Eventos são publicados no RabbitMQ quando ocorrem ações relacionadas a notas (criação, atualização, exclusão).
+- O microsserviço de notas consome esses eventos e realiza as operações correspondentes.
+- Respostas são enviadas de volta ao serviço principal através do RabbitMQ.
+
+Esta arquitetura proporciona melhor escalabilidade, desacoplamento entre serviços e processamento assíncrono de operações.
+
+## Desenvolvimento
+
+Para desenvolvimento local sem Docker:
+
+1. Certifique-se de ter Java 21, Maven, Node.js, MySQL e RabbitMQ instalados.
+2. Configure o banco de dados e o RabbitMQ conforme descrito nos arquivos de configuração.
+3. Execute cada serviço separadamente (EurekaServer, NoteService, backend principal).
+4. Execute o frontend com `npm run dev`.
 
 ### Configuração do RabbitMQ
 
@@ -103,7 +180,7 @@ O projeto agora utiliza uma arquitetura de microsserviços orientada a eventos:
 
 1. Navegue até o diretório do frontend:
     ```bash
-    cd frontend/project-manager-frontend
+    cd frontend
     ```
 
 2. Instale as dependências:
@@ -119,44 +196,3 @@ O projeto agora utiliza uma arquitetura de microsserviços orientada a eventos:
 ### Executando a Aplicação
 
 Após configurar o backend, os microsserviços e o frontend, abra o navegador e acesse `http://localhost:3000` para utilizar a aplicação.
-
-## Estrutura do Projeto
-
-### Backend
-- `src/main/java/com/klug/projectmanager/`
-  - `config/`: Classes de configuração, incluindo RabbitMQConfig
-  - `controller/`: Controladores da API REST
-  - `dto/`: Objetos de Transferência de Dados
-  - `entity/`: Entidades JPA
-  - `exception/`: Exceções personalizadas e manipuladores
-  - `repository/`: Repositórios JPA
-  - `security/`: Configurações de segurança e utilitários JWT
-  - `service/`: Serviços de lógica de negócios
-  - `messaging/`: Classes relacionadas à comunicação via RabbitMQ
-
-### NoteService
-- `src/main/java/com/klug/noteservice/`
-  - `config/`: Configurações, incluindo RabbitMQConfig
-  - `dto/`: DTOs para notas
-  - `entity/`: Entidade Note
-  - `repository/`: Repositório para notas
-  - `service/`: Serviço de lógica de negócios para notas
-  - `messaging/`: Handlers para processamento de mensagens RabbitMQ
-
-### Frontend
-- `src/`
-  - `app/`: Páginas e roteamento do Next.js
-  - `components/`: Componentes React
-  - `hooks/`: Hooks React personalizados
-  - `lib/`: Funções utilitárias
-  - `services/`: Funções de serviço da API
-
-## Arquitetura Orientada a Eventos
-
-O sistema agora utiliza uma arquitetura orientada a eventos para comunicação entre o serviço principal e o microsserviço de notas:
-
-- Eventos são publicados no RabbitMQ quando ocorrem ações relacionadas a notas (criação, atualização, exclusão).
-- O microsserviço de notas consome esses eventos e realiza as operações correspondentes.
-- Respostas são enviadas de volta ao serviço principal através do RabbitMQ.
-
-Esta arquitetura proporciona melhor escalabilidade, desacoplamento entre serviços e processamento assíncrono de operações.
