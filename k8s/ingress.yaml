@@ -7,26 +7,26 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
-  - http:
-      paths:
-      - path: /api/backend
-        pathType: Prefix
-        backend:
-          service:
-            name: backend
-            port:
-              number: 8080
-      - path: /api/notes
-        pathType: Prefix
-        backend:
-          service:
-            name: note-service
-            port:
-              number: 8081
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: frontend
-            port:
-              number: 80
+    - http:
+        paths:
+          - path: /api/backend
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /api/notes
+            pathType: Prefix
+            backend:
+              service:
+                name: note-service
+                port:
+                  number: 8081
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

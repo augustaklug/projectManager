@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: note-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: note-service
@@ -13,17 +13,21 @@ spec:
         app: note-service
     spec:
       containers:
-      - name: note-service
-        image: augustaklug/note-service:latest
-        ports:
-        - containerPort: 8081
-        env:
-        - name: SPRING_DATASOURCE_URL
-          value: "jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true"
-        - name: SPRING_RABBITMQ_HOST
-          value: "rabbitmq"
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: "http://eureka-server:8761/eureka/"
+        - name: note-service
+          image: augustaklug/note-service:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "root"
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+          ports:
+            - containerPort: 8081
 ---
 apiVersion: v1
 kind: Service

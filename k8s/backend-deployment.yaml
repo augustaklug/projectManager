@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -15,15 +15,19 @@ spec:
       containers:
       - name: backend
         image: augustaklug/backend:latest
-        ports:
-        - containerPort: 8080
         env:
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:mysql://mysql:3306/db_projectmanager?createDatabaseIfNotExist=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "root"
         - name: SPRING_RABBITMQ_HOST
           value: "rabbitmq"
         - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
           value: "http://eureka-server:8761/eureka/"
+        ports:
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
