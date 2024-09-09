@@ -17,15 +17,15 @@ spec:
           image: augustaklug/note-service:latest
           env:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true"
+              value: "jdbc:mysql://host.docker.internal:3306/db_noteservice?createDatabaseIfNotExist=true"
             - name: SPRING_DATASOURCE_USERNAME
               value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
               value: "root"
             - name: SPRING_RABBITMQ_HOST
-              value: "rabbitmq"
+              value: "host.docker.internal"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://eureka-server:8761/eureka/"
+              value: "http://host.docker.internal:8761/eureka/"
           ports:
             - containerPort: 8081
 ---
