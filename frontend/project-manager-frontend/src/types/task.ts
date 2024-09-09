@@ -3,7 +3,7 @@ import { NoteData } from './note';
 export type TaskStatus = 'Not Started' | 'In Progress' | 'Completed' | string;
 
 export interface TaskData {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
   status: TaskStatus;

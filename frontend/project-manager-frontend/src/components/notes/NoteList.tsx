@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {taskService} from '@/services/taskService';
@@ -16,11 +16,7 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
 
-    useEffect(() => {
-        fetchNotes();
-    }, [parentId, parentType]);
-
-    const fetchNotes = async () => {
+    const fetchNotes = useCallback(async () => {
         try {
             const fetchedNotes = parentType === 'project'
                 ? await projectService.getProjectNotes(parentId)
@@ -31,7 +27,11 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
         } catch (error) {
             console.error('Error fetching notes:', error);
         }
-    };
+    }, [parentId, parentType]);
+
+    useEffect(() => {
+        fetchNotes();
+    }, [fetchNotes]);
 
     const formatDate = (dateArray: number[] | undefined) => {
         if (!dateArray || !Array.isArray(dateArray)) return 'Unknown';
@@ -107,7 +107,8 @@ const NoteList: React.FC<NoteListProps> = ({parentId, parentType}) => {
                             ) : (
                                 <div className="flex justify-between mt-2">
                                     <Button size="sm" onClick={() => setEditingNoteId(note.id!)}>Edit</Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleDeleteNote(note.id!)}>Delete</Button>
+                                    <Button size="sm" variant="destructive"
+                                            onClick={() => handleDeleteNote(note.id!)}>Delete</Button>
                                 </div>
                             )}
                         </CardContent>

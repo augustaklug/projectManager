@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { taskService, TaskData } from '@/services/taskService';
+import { taskService } from '@/services/taskService';
 import { userService, UserData } from '@/services/userService';
-import { projectService, ProjectData } from '@/services/projectService';
+import { projectService } from '@/services/projectService';
+import { TaskData } from '@/types/task';
+import { ProjectData } from '@/types/project';
 
 interface CreateTaskFormProps {
   projectId: number;

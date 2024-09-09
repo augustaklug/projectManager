@@ -1,15 +1,6 @@
 import api from '@/lib/api';
 import {TaskData} from '@/types/task';
 
-// export interface TaskData {
-//     name: string;
-//     description?: string;
-//     status: string;
-//     deadline?: string;
-//     projectId: number;
-//     assignedToId?: number;
-// }
-
 export const taskService = {
     getAllTasks: async () => {
         const response = await api.get('/tasks');

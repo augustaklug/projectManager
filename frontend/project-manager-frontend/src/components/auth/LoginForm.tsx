@@ -78,7 +78,7 @@ const LoginForm = () => {
         </CardContent>
       </Card>
       <p className="mt-4 text-center">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Button variant="link" onClick={toggleForm}>
           Sign up
         </Button>

@@ -1,6 +1,8 @@
 import { TaskData } from './task';
 import { NoteData } from './note';
 
+export type { TaskData };
+
 export interface ProjectData {
   id: number;
   name: string;
