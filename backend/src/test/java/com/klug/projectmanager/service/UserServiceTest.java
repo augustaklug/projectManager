@@ -3,6 +3,7 @@ package com.klug.projectmanager.service;
 import com.klug.projectmanager.dto.UserDTO;
 import com.klug.projectmanager.entity.User;
 import com.klug.projectmanager.entity.UserHistory;
+import com.klug.projectmanager.exception.CustomException;
 import com.klug.projectmanager.repository.UserHistoryRepository;
 import com.klug.projectmanager.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ActiveProfiles("test")
 class UserServiceTest {
 
     @Mock
@@ -100,6 +104,21 @@ class UserServiceTest {
     }
 
     @Test
+    void updateUser_UserNotFound_ShouldThrowException() {
+        // Arrange
+        Long userId = 1L;
+        UserDTO userDTO = new UserDTO();
+        when(userRepository.findByIdAndIsDeletedFalse(userId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        CustomException exception = assertThrows(CustomException.class,
+                () -> userService.updateUser(userId, userDTO));
+        assertEquals("Usuário não encontrado.", exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+    }
+
+
+    @Test
     void getUserHistory_ShouldReturnHistoryList() {
         // Arrange
         Long userId = 1L;
@@ -114,5 +133,58 @@ class UserServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
+    }
+
+    @Test
+    void deleteUserById_ShouldSoftDeleteUser() {
+        // Arrange
+        Long userId = 1L;
+        User user = new User();
+        user.setId(userId);
+        user.setUsername("userToDelete");
+        user.setDeleted(false);
+
+        when(userRepository.findByIdAndIsDeletedFalse(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        userService.deleteUserById(userId);
+
+        // Assert
+        assertTrue(user.isDeleted());
+        verify(userRepository, times(1)).save(user);
+        verify(userHistoryRepository, times(1)).save(any(UserHistory.class));
+    }
+
+    @Test
+    void getUserByUsername_ShouldReturnUser() {
+        // Arrange
+        String username = "testuser";
+        User user = new User();
+        user.setId(1L);
+        user.setUsername(username);
+        user.setEmail("test@example.com");
+
+        when(userRepository.getByUsernameAndIsDeletedFalse(username)).thenReturn(Optional.of(user));
+        when(modelMapper.map(user, UserDTO.class)).thenReturn(new UserDTO());
+
+        // Act
+        UserDTO result = userService.getUserByUsername(username);
+
+        // Assert
+        assertNotNull(result);
+        verify(userRepository, times(1)).getByUsernameAndIsDeletedFalse(username);
+    }
+
+    @Test
+    void getUserByUsername_UserNotFound_ShouldThrowException() {
+        // Arrange
+        String username = "nonexistentuser";
+        when(userRepository.getByUsernameAndIsDeletedFalse(username)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        CustomException exception = assertThrows(CustomException.class,
+                () -> userService.getUserByUsername(username));
+        assertEquals("Usuário não encontrado.", exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
     }
 }

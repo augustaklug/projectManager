@@ -70,24 +70,42 @@ public class TaskService {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CustomException("Tarefa não encontrada.", HttpStatus.NOT_FOUND));
 
-        // Apenas atualize os campos que foram fornecidos no DTO
-        if (taskDTO.getName() != null) {
+        boolean changed = false;
+
+        if (taskDTO.getName() != null && !taskDTO.getName().equals(task.getName())) {
+            addToHistory(task, "name", task.getName(), taskDTO.getName());
             task.setName(taskDTO.getName());
+            changed = true;
         }
-        if (taskDTO.getStatus() != null) {
+        if (taskDTO.getStatus() != null && !taskDTO.getStatus().equals(task.getStatus())) {
+            addToHistory(task, "status", task.getStatus(), taskDTO.getStatus());
             task.setStatus(taskDTO.getStatus());
+            changed = true;
         }
-        if (taskDTO.getDeadline() != null) {
+        if (taskDTO.getDeadline() != null && !taskDTO.getDeadline().equals(task.getDeadline())) {
+            addToHistory(task, "deadline",
+                    task.getDeadline() != null ? task.getDeadline().toString() : "null",
+                    taskDTO.getDeadline().toString());
             task.setDeadline(taskDTO.getDeadline());
+            changed = true;
         }
-        if (taskDTO.getAssignedToId() != null) {
+        if (taskDTO.getAssignedToId() != null &&
+                (task.getAssignedTo() == null || !taskDTO.getAssignedToId().equals(task.getAssignedTo().getId()))) {
             User assignedUser = userRepository.findById(taskDTO.getAssignedToId())
                     .orElseThrow(() -> new CustomException("Usuário atribuído não encontrado.", HttpStatus.NOT_FOUND));
+            addToHistory(task, "assignedTo",
+                    task.getAssignedTo() != null ? task.getAssignedTo().getUsername() : "null",
+                    assignedUser.getUsername());
             task.setAssignedTo(assignedUser);
+            changed = true;
         }
 
-        Task updatedTask = taskRepository.save(task);
-        return mapToDTO(updatedTask);
+        if (changed) {
+            Task updatedTask = taskRepository.save(task);
+            return mapToDTO(updatedTask);
+        } else {
+            return mapToDTO(task);
+        }
     }
 
     @Transactional

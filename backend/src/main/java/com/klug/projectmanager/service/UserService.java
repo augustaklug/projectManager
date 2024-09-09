@@ -134,7 +134,7 @@ public class UserService {
     }
 
     public UserDTO getUserByUsername(String username) {
-        User user = userRepository.getByUsername(username)
+        User user = userRepository.getByUsernameAndIsDeletedFalse(username)
                 .orElseThrow(() -> new CustomException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
         return mapToDTO(user);
     }
