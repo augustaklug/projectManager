@@ -1,13 +1,10 @@
 name: Deploy to Oracle Cloud
 
 on:
-#  push:
-#    branches: [ "master" ]
-#    paths-ignore:
-#      - '**/*.md'
-#      - '**/*.yml'
-#      - '.gitignore'
-      
+  workflow_run:
+    workflows: ["Push to Docker Hub"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
@@ -81,7 +78,12 @@ jobs:
               sudo usermod -aG docker $USER
             fi
             
-            # Execute os comandos Docker Compose
+            echo "Parando os contêineres existentes..."
+            docker-compose stop
+            
+            echo "Puxando as novas imagens..."
             docker-compose pull
-            docker-compose up -d --build
+            
+            echo "Iniciando os serviços..."
+            docker-compose up -d
           EOF
