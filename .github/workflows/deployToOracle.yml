@@ -1,12 +1,14 @@
 name: Deploy to Oracle Cloud
 
 on:
+#  push:
+#    branches: [ "master" ]
+#    paths-ignore:
+#      - '**/*.md'
+#      - '**/*.yml'
+#      - '.gitignore'
+      
   workflow_dispatch:
-  push:
-    branches: [ "master" ]
-    paths-ignore:
-      - '**/*.md'
-      - '.gitignore'
 
 jobs:
   deploy:
@@ -41,6 +43,7 @@ jobs:
           echo "region=${OCI_CLI_REGION}" >> ~/.oci/config
           echo "${OCI_CLI_KEY_CONTENT}" > ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/config
 
       - name: Deploy to Oracle Cloud
         env:
@@ -51,8 +54,11 @@ jobs:
           which oci
           oci --version
           
+          # Corrigir permissões do arquivo de configuração
+          oci setup repair-file-permissions --file ~/.oci/config
+          
           # Obtenha o IP público da instância
-          INSTANCE_IP=$(oci compute instance list-vnics --instance-id ${INSTANCE_OCID} --query "data[0].public-ip" --raw-output)
+          INSTANCE_IP=$(oci compute instance list-vnics --instance-id ${INSTANCE_OCID} --query 'data[0]."public-ip"' --raw-output)
           
           # Configurar a chave SSH
           echo "${ORACLE_SSH_PRIVATE_KEY}" > oracle_ssh_key
