@@ -38,6 +38,7 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./eureka-server
+          file: ./eureka-server/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest
 
@@ -52,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
@@ -66,6 +68,7 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./note-service
+          file: ./note-service/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/note-service:latest
 
@@ -87,5 +90,6 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
