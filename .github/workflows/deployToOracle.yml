@@ -2,6 +2,11 @@ name: Deploy to Oracle Cloud
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
 
 jobs:
   deploy:
@@ -15,6 +20,9 @@ jobs:
           curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh > install-oci-cli.sh
           chmod +x install-oci-cli.sh
           ./install-oci-cli.sh --accept-all-defaults
+          echo "/home/runner/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=/home/runner/lib" >> $GITHUB_ENV
+          source ~/.bashrc
 
       - name: Configure Oracle Cloud CLI
         env:
@@ -39,6 +47,10 @@ jobs:
           INSTANCE_OCID: ${{ secrets.INSTANCE_OCID }}
           ORACLE_SSH_PRIVATE_KEY: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
         run: |
+          # Verificar a instalação do OCI CLI
+          which oci
+          oci --version
+          
           # Obtenha o IP público da instância
           INSTANCE_IP=$(oci compute instance list-vnics --instance-id ${INSTANCE_OCID} --query "data[0].public-ip" --raw-output)
           
