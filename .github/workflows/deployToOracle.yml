@@ -46,44 +46,48 @@ jobs:
         env:
           INSTANCE_OCID: ${{ secrets.INSTANCE_OCID }}
           ORACLE_SSH_PRIVATE_KEY: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
-          REPO_URL: ${{ secrets.REPO_URL }}  # Adicione esta variável nos secrets do GitHub
+          REPO_URL: ${{ secrets.REPO_URL }}
         run: |
-          # Obtenha o IP público da instância
           INSTANCE_IP=$(oci compute instance list-vnics --instance-id ${INSTANCE_OCID} --query 'data[0]."public-ip"' --raw-output)
           
-          # Configurar a chave SSH
           echo "$ORACLE_SSH_PRIVATE_KEY" > oracle_ssh_key
           chmod 600 oracle_ssh_key
           
-          # Deploy usando SSH
           ssh -i oracle_ssh_key -o StrictHostKeyChecking=no ubuntu@${INSTANCE_IP} << EOF
-            # Crie o diretório do projeto se ele não existir
             mkdir -p /home/ubuntu/meu-projeto
-            
-            # Navegue para o diretório do projeto
             cd /home/ubuntu/meu-projeto
             
-            # Clone ou atualize o repositório
             if [ -d ".git" ]; then
               git pull origin master
             else
               git clone ${REPO_URL} .
             fi
             
-            # Verifique se o Docker e o Docker Compose estão instalados
             if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
               echo "Instalando Docker e Docker Compose..."
               sudo apt-get update
-              sudo apt-get install -y docker.io docker-compose
+              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+              sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
               sudo usermod -aG docker $USER
             fi
             
+            echo "Versão do Docker Compose:"
+            docker-compose --version
+            
             echo "Parando os contêineres existentes..."
-            docker-compose stop
+            docker-compose down
             
             echo "Puxando as novas imagens..."
             docker-compose pull
             
             echo "Iniciando os serviços..."
             docker-compose up -d
+            
+            echo "Logs dos contêineres:"
+            docker-compose logs
           EOF
