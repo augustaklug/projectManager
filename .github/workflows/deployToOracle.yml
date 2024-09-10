@@ -44,19 +44,13 @@ jobs:
           echo "${OCI_CLI_KEY_CONTENT}" > ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/config
-
+          
       - name: Deploy to Oracle Cloud
         env:
           INSTANCE_OCID: ${{ secrets.INSTANCE_OCID }}
           ORACLE_SSH_PRIVATE_KEY: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
+          REPO_URL: ${{ secrets.REPO_URL }}  # Adicione esta variável nos secrets do GitHub
         run: |
-          # Verificar a instalação do OCI CLI
-          which oci
-          oci --version
-          
-          # Corrigir permissões do arquivo de configuração
-          oci setup repair-file-permissions --file ~/.oci/config
-          
           # Obtenha o IP público da instância
           INSTANCE_IP=$(oci compute instance list-vnics --instance-id ${INSTANCE_OCID} --query 'data[0]."public-ip"' --raw-output)
           
@@ -64,14 +58,30 @@ jobs:
           echo "$ORACLE_SSH_PRIVATE_KEY" > oracle_ssh_key
           chmod 600 oracle_ssh_key
           
-          # Verificar o conteúdo da chave SSH (remova antes de usar em produção)
-          echo "Primeiras linhas da chave SSH:"
-          head -n 3 oracle_ssh_key
-          
           # Deploy usando SSH
-          ssh -i oracle_ssh_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -vvv ubuntu@${INSTANCE_IP} << EOF
-            cd /meu-projeto
-            git pull origin master
+          ssh -i oracle_ssh_key -o StrictHostKeyChecking=no ubuntu@${INSTANCE_IP} << EOF
+            # Crie o diretório do projeto se ele não existir
+            mkdir -p /home/ubuntu/meu-projeto
+            
+            # Navegue para o diretório do projeto
+            cd /home/ubuntu/meu-projeto
+            
+            # Clone ou atualize o repositório
+            if [ -d ".git" ]; then
+              git pull origin master
+            else
+              git clone ${REPO_URL} .
+            fi
+            
+            # Verifique se o Docker e o Docker Compose estão instalados
+            if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+              echo "Instalando Docker e Docker Compose..."
+              sudo apt-get update
+              sudo apt-get install -y docker.io docker-compose
+              sudo usermod -aG docker $USER
+            fi
+            
+            # Execute os comandos Docker Compose
             docker-compose pull
             docker-compose up -d --build
           EOF
