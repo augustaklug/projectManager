@@ -1,4 +1,4 @@
-name: Project Manager CI/CD
+name: Deploy to Oracle Cloud
 
 on:
   workflow_dispatch:
