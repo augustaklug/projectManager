@@ -77,6 +77,11 @@ jobs:
               sudo apt-get install -y docker.io docker-compose
               sudo usermod -aG docker $USER
             fi
+
+            # Criar ou atualizar o arquivo .env
+            echo "DOCKER_USERNAME=${DOCKER_USERNAME}" > .env
+            echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" >> .env
+            echo "JWT_SECRET=${JWT_SECRET}" >> .env
             
             echo "Parando os contêineres existentes..."
             docker-compose stop
