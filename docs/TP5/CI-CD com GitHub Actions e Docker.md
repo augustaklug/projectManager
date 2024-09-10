@@ -1,32 +1,34 @@
-# Relatório: Configuração de CI com GitHub Actions e Docker
+# Relatório: Configuração de CI/CD com GitHub Actions e Docker
 
-Este documento descreve o processo de configuração de Integração Contínua (CI) utilizando GitHub Actions para automatizar o ciclo de desenvolvimento do projeto. A configuração inclui testes automatizados, construção de imagens Docker e publicação no Docker Hub.
+Este documento descreve o processo de configuração de Integração Contínua (CI) e Entrega Contínua (CD) utilizando GitHub Actions para automatizar o ciclo de desenvolvimento do projeto. A configuração inclui a construção de imagens Docker e publicação no Docker Hub para todos os serviços do projeto.
 
 ## Visão Geral
 
 O fluxo de trabalho (workflow) criado no GitHub Actions realiza as seguintes etapas principais:
-1. **Executar testes**: Testes automatizados no backend, no serviço de notas, no servidor Eureka e no frontend.
-2. **Construir imagens Docker**: As imagens Docker para todos os serviços são construídas após a execução bem-sucedida dos testes.
+1. **Configuração do ambiente**: Prepara o ambiente de execução com as ferramentas necessárias.
+2. **Construir imagens Docker**: As imagens Docker para todos os serviços são construídas.
 3. **Publicar imagens no Docker Hub**: As imagens Docker são publicadas no Docker Hub após serem construídas com sucesso.
 
-## Estrutura do Workflow CI
+## Estrutura do Workflow CI/CD
 
-O workflow é acionado sempre que há um push ou pull request para a branch `main`. Ele está definido no arquivo `.github/workflows/cicd.yml`, com as seguintes etapas:
+O workflow é acionado nas seguintes situações:
+- Push para a branch `master`
+- Manualmente através da interface do GitHub Actions (workflow_dispatch)
 
-### 1. **Testes e Build**
-O job `build-and-push` executa testes, constrói as aplicações e as imagens Docker, e as publica no Docker Hub. A configuração inclui:
+Ele está definido no arquivo `.github/workflows/cicd.yml`, com as seguintes etapas principais:
 
-- **Eureka Server**: Usa o Maven para rodar os testes e construir o projeto Spring Boot.
-- **Backend**: Usa o Maven para rodar os testes e construir o projeto Spring Boot.
-- **Note Service**: Também utiliza Maven para rodar testes e construir o projeto.
-- **Frontend**: Usa Node.js para rodar testes e construir a aplicação.
+### 1. **Configuração do Ambiente**
+- Checkout do código (actions/checkout@v4.1.7)
+- Configuração do Docker Buildx (docker/setup-buildx-action@v3.6.1)
+- Login no Docker Hub (docker/login-action@v3.3.0)
+- Configuração do JDK 21 (actions/setup-java@v4.3.0)
+- Configuração do ambiente Node.js (actions/setup-node@v4.0.3)
 
-### 2. **Construção e Push de Imagens Docker**
-Após a execução dos testes e build, o mesmo job cuida da construção e publicação das imagens Docker. As imagens são criadas a partir dos arquivos Dockerfiles contidos nos diretórios `eureka-server`, `backend`, `note-service` e `frontend`. O processo inclui:
-
-- **Login no Docker Hub**: A autenticação no Docker Hub é feita usando secrets armazenados no repositório do GitHub.
-- **Construção de Imagens Docker**: O job utiliza o Docker para construir as imagens de cada um dos serviços.
-- **Publicação das Imagens**: As imagens são publicadas com a tag `latest` no Docker Hub.
+### 2. **Build e Push das Imagens Docker**
+Para cada serviço (Eureka Server, Backend, Note Service, Frontend):
+- Construção da imagem Docker
+- Push da imagem para o Docker Hub
+- Utilização de cache do GitHub Actions para otimizar o processo de build
 
 ## Código YAML do Workflow
 
@@ -35,71 +37,57 @@ name: Project Manager CI/CD
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.6.1
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3.3.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4.3.0
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build and Test Eureka Server
-        run: |
-          cd ./eureka-server
-          chmod +x ./mvnw
-          ./mvnw clean test
-          ./mvnw package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest
+      - name: Build and push Eureka Server Docker image
+        uses: docker/build-push-action@v6.7.0
+        with:
+          context: .
+          file: ./eureka-server/Dockerfile
+          push: true
+          cache-from: type=gha
+          tags: ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest
 
-      - name: Build and Test Backend
-        run: |
-          cd ./backend
-          chmod +x ./mvnw
-          ./mvnw clean test
-          ./mvnw package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
+      # Etapas similares para Backend e Note Service...
 
-      - name: Build and Test Note Service
-        run: |
-          cd ./note-service
-          chmod +x ./mvnw
-          ./mvnw clean test
-          ./mvnw package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/note-service:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/note-service:latest
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.0.3
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
 
-      - name: Build and Test Frontend
-        run: |
-          cd ./frontend
-          npm ci
-          npm test
-          npm run build
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v6.7.0
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          cache-from: type=gha
+          tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 ```
 
 ## Configuração Necessária
@@ -109,8 +97,10 @@ Para utilizar este workflow, é necessário configurar os seguintes secrets no r
 1. `DOCKER_USERNAME`: Seu nome de usuário do Docker Hub
 2. `DOCKER_PASSWORD`: Sua senha do Docker Hub
 
-## Considerações Finais
+## Execução do Workflow
 
-Este workflow de CI automatiza o processo de teste, build e publicação de imagens Docker para todos os componentes do projeto. Ele garante que apenas código que passa nos testes seja usado para criar as imagens Docker, e que essas imagens sejam prontamente disponibilizadas no Docker Hub para uso em ambientes de staging ou produção.
+O workflow pode ser executado de duas maneiras:
 
-A etapa de deploy não foi incluída neste workflow, focando apenas na integração contínua e na preparação das imagens Docker. O deploy para ambientes de staging ou produção pode ser configurado separadamente, permitindo maior flexibilidade e controle sobre o processo de implantação.
+1. **Automaticamente em push**: Quando um push é feito para a branch `master`.
+2. **Manualmente**: Através da interface do GitHub Actions, clicando em "Run workflow".
+
