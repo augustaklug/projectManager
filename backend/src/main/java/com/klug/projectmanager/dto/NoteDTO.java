@@ -3,11 +3,14 @@ package com.klug.projectmanager.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class NoteDTO {
-
+public class NoteDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private Long id;
 
     @NotBlank

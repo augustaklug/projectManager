@@ -1,9 +1,12 @@
 package com.klug.projectmanager.config;
 
+import brave.Tracing;
+import brave.spring.rabbit.SpringRabbitTracing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
@@ -121,9 +124,29 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
-        final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    public SpringRabbitTracing springRabbitTracing(Tracing tracing) {
+        return SpringRabbitTracing.newBuilder(tracing).build();
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory tracingRabbitListenerContainerFactory(
+            ConnectionFactory connectionFactory,
+            SpringRabbitTracing springRabbitTracing,
+            MessageConverter jsonMessageConverter) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setMessageConverter(jsonMessageConverter);
+        return springRabbitTracing.decorateSimpleRabbitListenerContainerFactory(factory);
+    }
+
+    @Bean
+    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory,
+                                     SpringRabbitTracing springRabbitTracing,
+                                     MessageConverter jsonMessageConverter) {
+        final RabbitTemplate rabbitTemplate = springRabbitTracing.decorateRabbitTemplate(
+                new RabbitTemplate(connectionFactory)
+        );
+        rabbitTemplate.setMessageConverter(jsonMessageConverter);
         return rabbitTemplate;
     }
 }

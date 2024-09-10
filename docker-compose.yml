@@ -11,10 +11,14 @@ services:
       - mysql
       - rabbitmq
       - eureka-server
+      - zipkin
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_projectmanager?createDatabaseIfNotExist=true
       - SPRING_RABBITMQ_HOST=rabbitmq
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - JWT_SECRET=2e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d3
+      - JWT_EXPIRY=3600000
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
 
   note-service:
     build:
@@ -26,10 +30,12 @@ services:
       - mysql
       - rabbitmq
       - eureka-server
+      - zipkin
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true
       - SPRING_RABBITMQ_HOST=rabbitmq
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
 
   eureka-server:
     build:
@@ -55,6 +61,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=db_projectmanager
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -66,3 +74,6 @@ services:
     image: openzipkin/zipkin
     ports:
       - "9411:9411"
+
+volumes:
+  mysql_data:

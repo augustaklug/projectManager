@@ -11,8 +11,12 @@ import java.util.List;
 @Component
 public class NoteMessageSender {
 
+    private final AmqpTemplate amqpTemplate;
+
     @Autowired
-    private AmqpTemplate amqpTemplate;
+    public NoteMessageSender(AmqpTemplate amqpTemplate) {
+        this.amqpTemplate = amqpTemplate;
+    }
 
     public NoteDTO createNote(NoteDTO note) {
         return (NoteDTO) amqpTemplate.convertSendAndReceive(
@@ -51,11 +55,7 @@ public class NoteMessageSender {
         return (List<NoteDTO>) amqpTemplate.convertSendAndReceive(
                 RabbitMQConfig.EXCHANGE_NOTES,
                 RabbitMQConfig.ROUTING_KEY_GET_NOTES_BY_TASK,
-                taskId,
-                message -> {
-                    message.getMessageProperties().setType(List.class.getName());
-                    return message;
-                }
+                taskId
         );
     }
 
@@ -63,11 +63,7 @@ public class NoteMessageSender {
         return (List<NoteDTO>) amqpTemplate.convertSendAndReceive(
                 RabbitMQConfig.EXCHANGE_NOTES,
                 RabbitMQConfig.ROUTING_KEY_GET_NOTES_BY_PROJECT,
-                projectId,
-                message -> {
-                    message.getMessageProperties().setType(List.class.getName());
-                    return message;
-                }
+                projectId
         );
     }
 }

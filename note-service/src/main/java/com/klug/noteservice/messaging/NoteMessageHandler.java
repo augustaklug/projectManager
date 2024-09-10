@@ -14,32 +14,32 @@ public class NoteMessageHandler {
     @Autowired
     private NoteService noteService;
 
-    @RabbitListener(queues = "#{queueCreateNote.name}")
+    @RabbitListener(queues = "#{queueCreateNote.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public NoteDTO createNote(NoteDTO noteDTO) {
         return noteService.createNote(noteDTO);
     }
 
-    @RabbitListener(queues = "#{queueUpdateNote.name}")
+    @RabbitListener(queues = "#{queueUpdateNote.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public NoteDTO updateNote(NoteDTO noteDTO) {
         return noteService.updateNote(noteDTO.getId(), noteDTO);
     }
 
-    @RabbitListener(queues = "#{queueDeleteNote.name}")
+    @RabbitListener(queues = "#{queueDeleteNote.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public void deleteNote(Long id) {
         noteService.deleteNote(id);
     }
 
-    @RabbitListener(queues = "#{queueGetNote.name}")
+    @RabbitListener(queues = "#{queueGetNote.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public NoteDTO getNoteById(Long id) {
         return noteService.getNoteById(id);
     }
 
-    @RabbitListener(queues = "#{queueGetNotesByTask.name}")
+    @RabbitListener(queues = "#{queueGetNotesByTask.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public List<NoteDTO> getNotesByTaskId(Long taskId) {
         return noteService.getNotesByTaskId(taskId);
     }
 
-    @RabbitListener(queues = "#{queueGetNotesByProject.name}")
+    @RabbitListener(queues = "#{queueGetNotesByProject.name}", containerFactory = "tracingRabbitListenerContainerFactory")
     public List<NoteDTO> getNotesByProjectId(Long projectId) {
         return noteService.getNotesByProjectId(projectId);
     }
