@@ -1,51 +1,6 @@
 version: '3.8'
 
 services:
-  backend:
-    image: augustaklug/backend:latest
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-      - rabbitmq
-      - eureka-server
-      - zipkin
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_projectmanager?createDatabaseIfNotExist=true
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - JWT_SECRET=2e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d3
-      - JWT_EXPIRY=3600000
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
-
-  note-service:
-    image: augustaklug/note-service:latest
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mysql
-      - rabbitmq
-      - eureka-server
-      - zipkin
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
-
-  eureka-server:
-    image: augustaklug/eureka-server:latest
-    ports:
-      - "8761:8761"
-
-  frontend:
-    image: augustaklug/frontend:latest
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-      - note-service
-
   mysql:
     image: mysql:8.0
     ports:
@@ -55,17 +10,137 @@ services:
       - MYSQL_DATABASE=db_projectmanager
     volumes:
       - mysql_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3.13-management
     ports:
       - "5672:5672"
       - "15672:15672"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   zipkin:
     image: openzipkin/zipkin
     ports:
       - "9411:9411"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9411/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  eureka-server:
+    image: $augustaklug/eureka-server:latest
+    ports:
+      - "8761:8761"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      zipkin:
+        condition: service_healthy
+
+  backend:
+    image: $augustaklug/backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_projectmanager?createDatabaseIfNotExist=true
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - JWT_SECRET=2e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d32e6a98abb5b23339ad14601d3
+      - JWT_EXPIRY=3600000
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  note-service:
+    image: $augustaklug/note-service:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_noteservice?createDatabaseIfNotExist=true
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  frontend:
+    image: $augustaklug/frontend:latest
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      backend:
+        condition: service_healthy
+      note-service:
+        condition: service_healthy
 
 volumes:
   mysql_data:
