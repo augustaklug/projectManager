@@ -12,9 +12,15 @@ export const useAuth = () => {
       const token = authService.getToken();
       const storedUserId = authService.getUsername();
       if (token && storedUserId) {
-        // Here you can add a token validation check if needed
-        setIsAuthenticated(true);
-        setUserId(storedUserId);
+        try {
+          setIsAuthenticated(true);
+          setUserId(storedUserId);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          setIsAuthenticated(false);
+          setUserId(null);
+          authService.logout(); // Limpa o token inválido
+        }
       } else {
         setIsAuthenticated(false);
         setUserId(null);
@@ -32,7 +38,7 @@ export const useAuth = () => {
       router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      throw error;
+      throw error; // Repassar o erro para ser tratado no componente
     }
   };
 

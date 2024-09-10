@@ -24,7 +24,13 @@ const SignUpForm = () => {
       router.push('/dashboard');
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Failed to register. Please try again.');
+      if (err.response?.status === 409) {
+        setError('User already exists. Please choose a different username or email.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to register. Please try again.');
+      }
     }
   };
 

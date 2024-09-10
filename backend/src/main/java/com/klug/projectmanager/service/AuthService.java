@@ -2,6 +2,7 @@ package com.klug.projectmanager.service;
 
 import com.klug.projectmanager.dto.SignUpRequest;
 import com.klug.projectmanager.entity.User;
+import com.klug.projectmanager.exception.UserAlreadyExistsException;
 import com.klug.projectmanager.repository.UserRepository;
 import com.klug.projectmanager.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,13 @@ public class AuthService {
         return jwtTokenProvider.generateToken(authentication);
     }
 
-    public void registerUser(SignUpRequest signUpRequest) {
+    public void registerUser(SignUpRequest signUpRequest) throws UserAlreadyExistsException {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            throw new RuntimeException("Username is already taken!");
+            throw new UserAlreadyExistsException("Username is already taken!");
+        }
+
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            throw new UserAlreadyExistsException("Email is already in use!");
         }
 
         User user = new User();

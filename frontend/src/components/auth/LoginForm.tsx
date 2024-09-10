@@ -22,7 +22,13 @@ const LoginForm = () => {
       await login(username, password);
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid username or password');
+      if (err.response?.status === 401) {
+        setError('Incorrect username or password. Please try again.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     }
   };
 
