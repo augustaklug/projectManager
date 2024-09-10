@@ -10,9 +10,6 @@ import com.klug.projectmanager.exception.CustomException;
 import com.klug.projectmanager.repository.ProjectRepository;
 import com.klug.projectmanager.repository.ProjectHistoryRepository;
 import com.klug.projectmanager.repository.UserRepository;
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.annotation.NewSpan;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -47,11 +44,7 @@ public class ProjectService {
     @Autowired
     private NoteMessageSender noteMessageSender;
 
-    @Autowired
-    private Tracer tracer;
-
     @Transactional
-    @NewSpan("createProject")
     public ProjectDTO createProject(ProjectDTO projectDTO) {
         if (projectRepository.existsByNameAndIsDeletedFalse(projectDTO.getName())) {
             throw new CustomException("O nome do projeto já está em uso.", HttpStatus.BAD_REQUEST);
@@ -66,8 +59,6 @@ public class ProjectService {
         project.setTeamMembers(teamMembers);
 
         Project savedProject = projectRepository.save(project);
-
-        tracer.currentSpan().tag("projectId", savedProject.getId().toString());
 
         addToHistory(savedProject, "Criação", null, "Projeto criado");
 
