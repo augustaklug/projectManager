@@ -1,113 +1,166 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Progress} from "@/components/ui/progress";
-import {Badge} from "@/components/ui/badge";
-import {projectService} from '@/services/projectService';
-import {taskService} from '@/services/taskService';
-import {ProjectData} from '@/types/project';
-import {TaskData} from '@/types/task';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { projectService } from '@/services/projectService';
+import { taskService } from '@/services/taskService';
+import { ProjectData } from '@/types/project';
+import { TaskData } from '@/types/task';
 import NoteList from '@/components/notes/NoteList';
 import CreateTaskForm from './CreateTaskForm';
+import { Loader2, Calendar, CheckCircle2, Clock, AlertCircle, Plus, X } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface ProjectDetailsProps {
-    projectId: number;
+  projectId: number;
 }
 
-const ProjectDetails: React.FC<ProjectDetailsProps> = ({projectId}) => {
-    const [project, setProject] = useState<ProjectData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [showCreateTaskForm, setShowCreateTaskForm] = useState(false);
+const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
+  const [project, setProject] = useState<ProjectData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showCreateTaskForm, setShowCreateTaskForm] = useState(false);
 
-    const fetchProjectDetails = useCallback(async () => {
-        try {
-            const projectData = await projectService.getProjectById(projectId);
-            setProject(projectData);
-            setLoading(false);
-        } catch (err) {
-            console.error('Error fetching project details:', err);
-            setError('Failed to fetch project details. Please try again.');
-            setLoading(false);
-        }
-    }, [projectId]);
+  const fetchProjectDetails = useCallback(async () => {
+    try {
+      const projectData = await projectService.getProjectById(projectId);
+      setProject(projectData);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching project details:', err);
+      setError('Failed to fetch project details. Please try again.');
+      setLoading(false);
+    }
+  }, [projectId]);
 
-    useEffect(() => {
-        fetchProjectDetails();
-    }, [fetchProjectDetails]);
+  useEffect(() => {
+    fetchProjectDetails();
+  }, [fetchProjectDetails]);
 
-    const getProjectProgress = () => {
-        if (!project || project.tasks.length === 0) return 0;
-        const completedTasks = project.tasks.filter((task: { status: string; }) => task.status === 'Completed').length;
-        return (completedTasks / project.tasks.length) * 100;
-    };
+  const getProjectProgress = () => {
+    if (!project || project.tasks.length === 0) return 0;
+    const completedTasks = project.tasks.filter((task: { status: string; }) => task.status === 'Completed').length;
+    return (completedTasks / project.tasks.length) * 100;
+  };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Completed':
-                return 'bg-green-500';
-            case 'In Progress':
-                return 'bg-yellow-500';
-            case 'Not Started':
-                return 'bg-red-500';
-            default:
-                return 'bg-gray-500';
-        }
-    };
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Completed':
+        return 'bg-green-500 dark:bg-green-700';
+      case 'In Progress':
+        return 'bg-yellow-500 dark:bg-yellow-600';
+      case 'Not Started':
+        return 'bg-red-500 dark:bg-red-700';
+      default:
+        return 'bg-gray-500 dark:bg-gray-600';
+    }
+  };
 
-    const handleTaskCreated = () => {
-        setShowCreateTaskForm(false);
-        fetchProjectDetails();
-    };
+  const handleTaskCreated = () => {
+    setShowCreateTaskForm(false);
+    fetchProjectDetails();
+  };
 
-    if (loading) return <div>Loading project details...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!project) return <div>Project not found</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 
-    return (
-        <div className="space-y-6">
-            {/* ... resto do JSX ... */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Tasks</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {project.tasks.length > 0 ? (
-                        <ul className="space-y-4">
-                            {project.tasks.map((task: TaskData) => (
-                                <li key={task.id} className="flex justify-between items-center">
-                                    <span>{task.name}</span>
-                                    <div>
-                                        <Badge className={`mr-2 ${getStatusColor(task.status)}`}>{task.status}</Badge>
-                                        <span
-                                            className="text-sm text-gray-500">Due: {new Date(task.deadline).toLocaleDateString()}</span>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>No tasks for this project yet.</p>
-                    )}
-                    <Button className="mt-4" onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}>
-                        {showCreateTaskForm ? 'Cancel' : 'Add New Task'}
-                    </Button>
-                    {showCreateTaskForm && (
-                        <div className="mt-4">
-                            <CreateTaskForm projectId={projectId} onTaskCreated={handleTaskCreated}/>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Project Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <NoteList parentId={projectId} parentType="project"/>
-                </CardContent>
-            </Card>
-        </div>
-    );
+  if (error) return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>{error}</AlertDescription>
+    </Alert>
+  );
+
+  if (!project) return (
+    <Alert variant="default">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Project Not Found</AlertTitle>
+      <AlertDescription>The requested project could not be found.</AlertDescription>
+    </Alert>
+  );
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">{project.name}</CardTitle>
+          <CardDescription className="flex items-center text-muted-foreground">
+            <Calendar className="mr-2 h-4 w-4" />
+            {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-foreground">Project Progress</span>
+              <span className="text-sm font-medium text-foreground">{getProjectProgress().toFixed(0)}% Complete</span>
+            </div>
+            <Progress value={getProjectProgress()} className="h-2" />
+          </div>
+          <p className="text-sm text-muted-foreground">{project.description}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <span>Tasks</span>
+            <Button size="sm" onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}>
+              {showCreateTaskForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              {showCreateTaskForm ? 'Cancel' : 'Add New Task'}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {showCreateTaskForm && (
+            <div className="mb-6">
+              <CreateTaskForm projectId={projectId} onTaskCreated={handleTaskCreated} />
+            </div>
+          )}
+          {project.tasks.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full">
+              {project.tasks.map((task: TaskData) => (
+                <AccordionItem key={task.id} value={`task-${task.id}`}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex justify-between items-center w-full">
+                      <span className="font-medium">{task.name}</span>
+                      <Badge className={`${getStatusColor(task.status)} text-primary-foreground`}>{task.status}</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">{task.description}</p>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="mr-2 h-4 w-4" />
+                        Due: {new Date(task.deadline).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <p className="text-muted-foreground">No tasks for this project yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Notes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NoteList parentId={projectId} parentType="project" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default ProjectDetails;

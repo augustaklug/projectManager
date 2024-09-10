@@ -7,6 +7,10 @@ import { userService, UserData } from '@/services/userService';
 import { projectService } from '@/services/projectService';
 import { TaskData } from '@/types/task';
 import { ProjectData } from '@/types/project';
+import { Loader2, Calendar, User } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateTaskFormProps {
   projectId: number;
@@ -27,19 +31,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ projectId, onTaskCreate
     const fetchProjectDetails = async () => {
       try {
         setLoading(true);
-        console.log("Fetching project details for projectId:", projectId);
         const project: ProjectData = await projectService.getProjectById(projectId);
-        console.log("Received project data:", project);
 
         if (project.teamMemberIds && project.teamMemberIds.length > 0) {
-          console.log("Team member IDs:", project.teamMemberIds);
           const members = await Promise.all(
             project.teamMemberIds.map(id => userService.getUserById(id))
           );
-          console.log("Fetched team members:", members);
           setProjectMembers(members);
-        } else {
-          console.log("No team members found for this project");
         }
       } catch (err) {
         console.error('Error fetching project details:', err);
@@ -65,11 +63,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ projectId, onTaskCreate
       assignedToId: assignedToId !== 'unassigned' ? parseInt(assignedToId) : undefined
     };
 
-    console.log("Submitting task data:", taskData);
-
     try {
-      const createdTask = await taskService.createTask(taskData);
-      console.log("Task created successfully:", createdTask);
+      await taskService.createTask(taskData);
       setName('');
       setDescription('');
       setStatus('Not Started');
@@ -82,51 +77,76 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ projectId, onTaskCreate
     }
   };
 
-  console.log("Current state - projectMembers:", projectMembers);
-  console.log("Current state - loading:", loading);
-  console.log("Current state - error:", error);
-
   if (loading) {
-    return <div>Loading project members...</div>;
+    return (
+      <div className="flex justify-center items-center h-24">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        placeholder="Task Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger>
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Not Started">Not Started</SelectItem>
-          <SelectItem value="In Progress">In Progress</SelectItem>
-        </SelectContent>
-      </Select>
-      <Input
-        type="date"
-        value={deadline}
-        onChange={(e) => setDeadline(e.target.value)}
-      />
-      <Select value={assignedToId} onValueChange={setAssignedToId}>
-        <SelectTrigger>
-          <SelectValue placeholder="Assign to" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="unassigned">Unassigned</SelectItem>
-          {projectMembers.map((member) => (
-            <SelectItem key={member.id} value={member.id?.toString() ?? ''}>
-              {member.username}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit">Create Task</Button>
+      <div className="space-y-2">
+        <Label htmlFor="taskName">Task Name</Label>
+        <Input
+          id="taskName"
+          placeholder="Enter task name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="taskStatus">Status</Label>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger id="taskStatus">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Not Started">Not Started</SelectItem>
+            <SelectItem value="In Progress">In Progress</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="taskDeadline" className="flex items-center">
+          <Calendar className="mr-2 h-4 w-4" />
+          Deadline
+        </Label>
+        <Input
+          id="taskDeadline"
+          type="date"
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="taskAssignee" className="flex items-center">
+          <User className="mr-2 h-4 w-4" />
+          Assign to
+        </Label>
+        <Select value={assignedToId} onValueChange={setAssignedToId}>
+          <SelectTrigger id="taskAssignee">
+            <SelectValue placeholder="Select team member" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
+            {projectMembers.map((member) => (
+              <SelectItem key={member.id} value={member.id?.toString() ?? ''}>
+                {member.username}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      <Button type="submit" className="w-full">Create Task</Button>
     </form>
   );
 };

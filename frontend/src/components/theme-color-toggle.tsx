@@ -1,8 +1,7 @@
-// src/components/theme-color-toggle.tsx
 "use client"
 
 import * as React from "react"
-import { Paintbrush } from "lucide-react"
+import { Paintbrush, Check } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -48,13 +47,26 @@ export function ThemeColorToggle() {
           <span className="sr-only">Toggle theme color</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-56">
         {themes.map((theme) => (
           <DropdownMenuItem
             key={theme.name}
             onClick={() => setTheme(theme.name)}
+            className="flex items-center justify-between"
           >
-            {theme.name}
+            <div className="flex items-center">
+              <div
+                className="w-4 h-4 rounded-full mr-2 border border-border"
+                style={{
+                  backgroundColor: `hsl(${theme.hue}, ${theme.saturation}%, 50%)`,
+                }}
+                aria-hidden="true"
+              />
+              <span>{theme.name}</span>
+            </div>
+            {currentTheme === theme.name && (
+              <Check className="h-4 w-4 text-primary" />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

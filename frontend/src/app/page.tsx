@@ -1,11 +1,9 @@
-// src/app/page.tsx
 "use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import LoginForm from '@/components/auth/LoginForm';
-import Dashboard from '@/components/dashboard/Dashboard';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -19,12 +17,13 @@ export default function Home() {
     }
   }, [isAuthenticated, router]);
 
-  // Enquanto verifica a autenticação, pode mostrar um loader
   if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  // Este retorno nunca deve ser renderizado devido ao redirecionamento,
-  // mas é necessário para satisfazer o TypeScript/React
   return null;
 }

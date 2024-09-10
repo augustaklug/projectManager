@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { NoteData } from '@/types/note';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 
 interface NoteFormProps {
   note?: NoteData;
@@ -49,27 +51,35 @@ const NoteForm: React.FC<NoteFormProps> = ({ note, onSubmit, onCancel, parentId,
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+      <div className="space-y-2">
+        <Label htmlFor="noteContent">Note Content</Label>
         <Textarea
+          id="noteContent"
           value={content}
           onChange={handleContentChange}
-          placeholder="Note content"
+          placeholder="Enter your note here..."
           className={`resize-none ${error ? 'border-red-500' : ''}`}
           rows={4}
         />
-        <div className="flex justify-between items-center mt-2">
-          <span className={`text-sm ${content.length > MAX_CHARACTERS ? 'text-red-500' : 'text-gray-500'}`}>
+        <div className="flex justify-between items-center text-sm">
+          <span className={content.length > MAX_CHARACTERS ? 'text-red-500' : 'text-muted-foreground'}>
             {content.length}/{MAX_CHARACTERS}
           </span>
-          {error && <span className="text-sm text-red-500">{error}</span>}
+          {error && <span className="text-red-500">{error}</span>}
         </div>
       </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={content.length === 0 || content.length > MAX_CHARACTERS}>
-          {note ? 'Update' : 'Add'} Note
-        </Button>
         <Button type="button" onClick={onCancel} variant="outline">
           Cancel
+        </Button>
+        <Button type="submit" disabled={content.length === 0 || content.length > MAX_CHARACTERS}>
+          {note ? 'Update' : 'Add'} Note
         </Button>
       </div>
     </form>

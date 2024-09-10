@@ -4,6 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { taskService } from '@/services/taskService';
 import { projectService } from '@/services/projectService';
 import { ProjectData, TaskData } from '@/types/project';
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface TaskWithProject extends TaskData {
   projectName?: string;
@@ -50,13 +52,13 @@ const TaskList: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
-        return 'bg-green-500';
+        return 'bg-green-500 dark:bg-green-700';
       case 'in progress':
-        return 'bg-yellow-500';
+        return 'bg-yellow-500 dark:bg-yellow-600';
       case 'not started':
-        return 'bg-red-500';
+        return 'bg-red-500 dark:bg-red-700';
       default:
-        return 'bg-gray-500';
+        return 'bg-gray-500 dark:bg-gray-600';
     }
   };
 
@@ -91,37 +93,47 @@ const TaskList: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading tasks...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+
+  if (error) return (
+    <Alert variant="destructive">
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>{error}</AlertDescription>
+    </Alert>
+  );
 
   const statusColumns = ['Not Started', 'In Progress', 'Completed'];
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">My Tasks</h2>
+      <h2 className="text-2xl font-bold text-foreground">My Tasks</h2>
       <div className="flex space-x-4 overflow-x-auto pb-4">
         {statusColumns.map((status) => (
           <div key={status} className="flex-1 min-w-[300px]">
-            <h3 className={`text-lg font-semibold mb-2 text-black p-2 rounded`}>{status}</h3>
+            <h3 className="text-lg font-semibold mb-2 text-foreground p-2 rounded">{status}</h3>
             <div className="space-y-4">
               {tasks.filter(task => task.status === status).map((task) => (
                 <Card
                   key={task.id}
-                  className={`flex flex-col ${isDeadlineNear(task.deadline, task.status) ? 'bg-orange-100' : ''}`}
+                  className={`flex flex-col ${isDeadlineNear(task.deadline, task.status) ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700' : ''}`}
                 >
                   <CardHeader className="flex-grow">
                     <CardTitle className="text-lg">{task.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{task.projectName}</p>
+                    <p className="text-sm text-muted-foreground">{task.projectName}</p>
                   </CardHeader>
                   <CardContent>
-                    <p className={`text-sm mb-2 ${isDeadlineNear(task.deadline, task.status) ? 'font-bold text-orange-600' : ''}`}>
+                    <p className={`text-sm mb-2 ${isDeadlineNear(task.deadline, task.status) ? 'font-bold text-orange-600 dark:text-orange-400' : ''}`}>
                       Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'Not set'}
                     </p>
                     <Select
                       value={task.status}
                       onValueChange={(value) => handleStatusChange(task.id, value)}
                     >
-                      <SelectTrigger className={`w-full ${getStatusColor(task.status)} text-white`}>
+                      <SelectTrigger className={`w-full ${getStatusColor(task.status)} text-primary-foreground`}>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
