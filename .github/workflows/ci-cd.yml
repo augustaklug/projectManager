@@ -1,10 +1,11 @@
-name: Project Manager CI/CD
+name: Push to Docker Hub
 
 on:
   push:
     branches: [ "master" ]
     paths-ignore:
       - '**/*.md'
+      - '**/*.yml'
       - '.gitignore'
       
   workflow_dispatch:
