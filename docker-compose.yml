@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ${DOCKER_USERNAME}/backend:latest
     ports:
       - "8080:8080"
     depends_on:
@@ -21,9 +19,7 @@ services:
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
 
   note-service:
-    build:
-      context: .
-      dockerfile: note-service/Dockerfile
+    image: ${DOCKER_USERNAME}/note-service:latest
     ports:
       - "8081:8081"
     depends_on:
@@ -38,16 +34,12 @@ services:
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
 
   eureka-server:
-    build:
-      context: .
-      dockerfile: eureka-server/Dockerfile
+    image: ${DOCKER_USERNAME}/eureka-server:latest
     ports:
       - "8761:8761"
 
   frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
+    image: ${DOCKER_USERNAME}/frontend:latest
     ports:
       - "3000:3000"
     depends_on:
