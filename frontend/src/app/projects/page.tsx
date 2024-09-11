@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import AuthLayout from '@/components/layout/AuthLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout'
 import ProjectList from '@/components/projects/ProjectList';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";

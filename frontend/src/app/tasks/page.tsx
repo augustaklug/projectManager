@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from '@/hooks/useAuth';
-import AuthLayout from '@/components/layout/AuthLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout'
 import TaskList from '@/components/tasks/TaskList';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';

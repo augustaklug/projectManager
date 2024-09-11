@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {useRouter} from 'next/navigation';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -11,32 +11,37 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
 export default function Profile() {
     const [profile, setProfile] = useState<UserData | null>(null);
     const [error, setError] = useState('');
+    const [shouldFetchProfile, setShouldFetchProfile] = useState(true);
     const {logout} = useAuth();
     const router = useRouter();
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const data = await userService.getCurrentUser();
-                console.log('Fetched profile:', data);
-                setProfile(data);
-            } catch (err) {
-                console.error('Error fetching profile:', err);
-                if (err instanceof Error) {
-                    if (err.message === 'User not authenticated') {
-                        setError('Your session has expired. Please log in again.');
-                        logout();
-                    } else {
-                        setError(`Failed to fetch profile: ${err.message}`);
-                    }
-                } else {
-                    setError('An unknown error occurred while fetching the profile.');
-                }
-            }
-        };
+    const fetchProfile = useCallback(async () => {
+        if (!shouldFetchProfile) return;
 
+        try {
+            const data = await userService.getCurrentUser();
+            console.log('Fetched profile:', data);
+            setProfile(data);
+            setShouldFetchProfile(false);
+        } catch (err) {
+            console.error('Error fetching profile:', err);
+            if (err instanceof Error) {
+                if (err.message === 'User not authenticated') {
+                    setError('Your session has expired. Please log in again.');
+                    logout();
+                } else {
+                    setError(`Failed to fetch profile: ${err.message}`);
+                }
+            } else {
+                setError('An unknown error occurred while fetching the profile.');
+            }
+            setShouldFetchProfile(false);
+        }
+    }, [shouldFetchProfile, logout]);
+
+    useEffect(() => {
         fetchProfile();
-    }, [logout]);
+    }, [fetchProfile]);
 
     const getFriendlyRoleName = (role: string | undefined): string => {
         if (!role) return 'Not set';

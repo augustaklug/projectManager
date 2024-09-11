@@ -6,35 +6,39 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import SignUpForm from './SignUpForm';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     try {
       await login(username, password);
+      // Successful login will redirect to dashboard
     } catch (err: any) {
       console.error('Login error:', err);
+      let errorMessage = 'An error occurred. Please try again.';
       if (err.response?.status === 401) {
-        setError('Incorrect username or password. Please try again.');
+        errorMessage = 'Incorrect username or password. Please try again.';
       } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('An error occurred. Please try again.');
+        errorMessage = err.response.data.message;
       }
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
-    setError('');
   };
 
   if (!isLogin) {
@@ -77,7 +81,6 @@ const LoginForm = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-red-500">{error}</p>}
               <Button type="submit">Sign In</Button>
             </div>
           </form>

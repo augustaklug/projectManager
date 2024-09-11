@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Dashboard from '@/components/dashboard/Dashboard';
-import AuthLayout from '@/components/layout/AuthLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout'
 
 export default function DashboardPage() {
   const { isAuthenticated } = useAuth();
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     return <div>Loading...</div>;
   }
 
-  if (isAuthenticated === false) {
+  if (!isAuthenticated) {
     return null; // Isso nunca deve ser renderizado devido ao redirecionamento
   }
 

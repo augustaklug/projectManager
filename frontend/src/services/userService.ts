@@ -1,7 +1,5 @@
 import api from '@/lib/api';
 import {authService} from "@/services/authService";
-import {useRouter} from 'next/router';
-import {useEffect} from 'react';
 
 export interface UserData {
     id?: number;
@@ -9,8 +7,6 @@ export interface UserData {
     email: string;
     role?: string;
 }
-
-let cachedCurrentUser: UserData | null = null;
 
 export const userService = {
     getAllUsers: async (): Promise<UserData[]> => {
@@ -44,10 +40,6 @@ export const userService = {
     },
 
     getCurrentUser: async (): Promise<UserData> => {
-        if (cachedCurrentUser) {
-            return cachedCurrentUser;
-        }
-
         const currentUsername = authService.getUsername();
         if (!currentUsername) {
             console.error('getCurrentUser: No username found');
@@ -55,8 +47,7 @@ export const userService = {
         }
 
         try {
-            cachedCurrentUser = await userService.getUserByUsername(currentUsername);
-            return cachedCurrentUser;
+            return await userService.getUserByUsername(currentUsername);
         } catch (error: any) {
             console.error('getCurrentUser: Error fetching current user:', error.response?.data || error.message);
             throw error;
@@ -91,20 +82,6 @@ export const userService = {
             throw error;
         }
     },
-
-    invalidateCurrentUserCache: () => {
-        cachedCurrentUser = null;
-    }
-};
-
-export const useInvalidateUserCacheOnProfileRoute = () => {
-    const router = useRouter();
-
-    useEffect(() => {
-        if (router.pathname === '/profile') {
-            userService.invalidateCurrentUserCache();
-        }
-    }, [router.pathname]);
 };
 
 export default userService;

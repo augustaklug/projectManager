@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from '@/hooks/useAuth';
-import AuthLayout from '@/components/layout/AuthLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout'
 import CreateProject from '@/components/projects/CreateProject';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';

@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -33,8 +34,10 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
             );
 
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = authService.generateToken(authentication);
-            return ResponseEntity.ok(new AuthResponse(jwt));
+            AuthResponse authResponse = authService.createAuthResponse(authentication, jwt);
+            return ResponseEntity.ok(authResponse);
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Error: Incorrect username or password");
@@ -51,6 +54,17 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            AuthResponse authResponse = authService.createAuthResponse(authentication, null);
+            return ResponseEntity.ok(authResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
     }
 }

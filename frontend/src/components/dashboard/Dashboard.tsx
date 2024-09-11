@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -12,6 +12,7 @@ import { AlertCircle, Loader2, BarChart2, CheckCircle2, Clock, Plus } from "luci
 import { ProjectData, TaskData } from '@/types/project'
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<ProjectData[]>([])
@@ -19,29 +20,39 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [userName, setUserName] = useState('')
+  const { isAuthenticated, checkAuth } = useAuth()
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      const [projectsData, tasksData, userData] = await Promise.all([
+        projectService.getUserProjects(),
+        taskService.getUserTasks(),
+        userService.getCurrentUser()
+      ])
+      setProjects(projectsData)
+      setTasks(tasksData)
+      setUserName(userData.username || 'User')
+      setError('')
+    } catch (err) {
+      console.error('Error fetching data:', err)
+      setError('Failed to fetch data. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const [projectsData, tasksData, userData] = await Promise.all([
-          projectService.getUserProjects(),
-          taskService.getUserTasks(),
-          userService.getCurrentUser()
-        ])
-        setProjects(projectsData)
-        setTasks(tasksData)
-        setUserName(userData.username || 'User')
-        setLoading(false)
-      } catch (err) {
-        console.error('Error fetching data:', err)
-        setError('Failed to fetch data. Please try again later.')
-        setLoading(false)
+    const initializeDashboard = async () => {
+      if (isAuthenticated) {
+        await fetchData()
+      } else {
+        await checkAuth()
       }
     }
 
-    fetchData()
-  }, [])
+    initializeDashboard()
+  }, [isAuthenticated, checkAuth, fetchData])
 
   const calculateProjectProgress = (project: ProjectData) => {
     const totalTasks = project.tasks.length

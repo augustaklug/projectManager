@@ -57,4 +57,15 @@ export const authService = {
         }
     },
 
+    verifyToken: async () => {
+        try {
+            await api.get('/auth/verify');
+            return true;
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            authService.logout();
+            throw error;
+        }
+    },
+
 };
