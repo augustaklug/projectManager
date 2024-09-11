@@ -15,19 +15,17 @@ spec:
       containers:
       - name: backend
         image: augustaklug/backend:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: backend-config
         env:
-        - name: SPRING_DATASOURCE_URL
-          value: "jdbc:mysql://host.docker.internal:3306/db_projectmanager?createDatabaseIfNotExist=true"
-        - name: SPRING_DATASOURCE_USERNAME
-          value: "root"
-        - name: SPRING_DATASOURCE_PASSWORD
-          value: "root"
-        - name: SPRING_RABBITMQ_HOST
-          value: "host.docker.internal"
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: "http://host.docker.internal:8761/eureka/"
-        - name: SPRING_ZIPKIN_BASE_URL
-          value: "http://host.docker.internal:9411"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: jwt-secret
 ---
 apiVersion: v1
 kind: Service
@@ -37,5 +35,24 @@ spec:
   selector:
     app: backend
   ports:
-    - port: 8080
-      targetPort: 8080
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/db_projectmanager?createDatabaseIfNotExist=true"
+  SPRING_RABBITMQ_HOST: "rabbitmq"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+  JWT_EXPIRY: "3600000"
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://zipkin:9411/api/v2/spans"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+type: Opaque
+data:
+  jwt-secret: MmU2YTk4YWJiNWIyMzMzOWFkMTQ2MDFkMzJlNmE5OGFiYjViMjMzMzlhZDE0NjAxZDMyZTZhOThhYmI1YjIzMzM5YWQxNDYwMWQzMmU2YTk4YWJiNWIyMzMzOWFkMTQ2MDFkMw==

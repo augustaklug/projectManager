@@ -19,9 +19,19 @@ spec:
         - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: root
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
         - name: MYSQL_DATABASE
           value: db_projectmanager
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -31,5 +41,24 @@ spec:
   selector:
     app: mysql
   ports:
-    - port: 3306
-      targetPort: 3306
+  - port: 3306
+    targetPort: 3306
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  root-password: cm9vdA== # Base64 encoded "root"
