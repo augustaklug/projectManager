@@ -71,5 +71,6 @@ jobs:
             
             # Execute os comandos Docker Compose
             docker compose pull
+            docker compose down
             docker compose up -d
           EOF
