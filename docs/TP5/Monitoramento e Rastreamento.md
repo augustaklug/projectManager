@@ -1,16 +1,16 @@
-# Relatório: Implementação de Monitoramento e Rastreamento em Microsserviços
+# Relatório Consolidado: Monitoramento e Rastreamento em Arquitetura de Microsserviços
 
 ## Introdução
 
-Este relatório descreve as mudanças implementadas para configurar ferramentas de agregação de logs e rastreamento de transações na arquitetura de microsserviços. O objetivo dessas alterações é melhorar o monitoramento da operação dos serviços, facilitando a detecção e resolução de problemas.
+Este relatório abrange as implementações e configurações realizadas para estabelecer um sistema de monitoramento e rastreamento em nossa arquitetura de microsserviços. O foco principal está nas ferramentas e técnicas utilizadas para melhorar a observabilidade, facilitar a detecção de problemas e otimizar o desempenho do sistema.
 
-## Alterações Implementadas
+## Componentes Implementados
 
-### 1. Adição do Spring Boot Actuator
+### 1. Spring Boot Actuator
 
-O Spring Boot Actuator foi adicionado ao projeto para fornecer endpoints de monitoramento e gerenciamento.
+O Spring Boot Actuator foi adicionado para fornecer endpoints de monitoramento e gerenciamento.
 
-#### Mudanças no pom.xml:
+#### Configuração (pom.xml):
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -18,18 +18,18 @@ O Spring Boot Actuator foi adicionado ao projeto para fornecer endpoints de moni
 </dependency>
 ```
 
-#### Configurações no application.properties:
+#### Configurações (application.properties):
 ```properties
 management.endpoints.web.exposure.include=*
 management.endpoint.health.show-details=always
 management.endpoints.web.base-path=/actuator
 ```
 
-### 2. Implementação de Rastreamento Distribuído
+### 2. Rastreamento Distribuído com Micrometer e Zipkin
 
-Utilizamos o Micrometer Tracing para implementar o rastreamento distribuído.
+Implementamos o rastreamento distribuído usando Micrometer Tracing e Zipkin.
 
-#### Mudanças no pom.xml:
+#### Configuração (pom.xml):
 ```xml
 <dependency>
     <groupId>io.micrometer</groupId>
@@ -45,17 +45,17 @@ Utilizamos o Micrometer Tracing para implementar o rastreamento distribuído.
 </dependency>
 ```
 
-#### Configurações no application.properties:
+#### Configurações (application.properties):
 ```properties
 management.tracing.sampling.probability=1.0
-management.zipkin.tracing.endpoint=http://localhost:9411/api/v2/spans
+management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
 ```
 
-### 3. Configuração de Métricas com Prometheus
+### 3. Métricas com Prometheus
 
 Adicionamos suporte para exportação de métricas no formato Prometheus.
 
-#### Mudanças no pom.xml:
+#### Configuração (pom.xml):
 ```xml
 <dependency>
     <groupId>io.micrometer</groupId>
@@ -63,50 +63,92 @@ Adicionamos suporte para exportação de métricas no formato Prometheus.
 </dependency>
 ```
 
-#### Configurações no application.properties:
+#### Configurações (application.properties):
 ```properties
 management.prometheus.metrics.export.enabled=true
 management.metrics.distribution.percentiles-histogram.http.server.requests=true
 ```
 
-### 4. Configuração de Logging
+### 4. Logging Aprimorado
 
 Melhoramos a configuração de logging para facilitar a depuração e análise.
 
-#### Configurações no application.properties:
+#### Configurações (application.properties):
 ```properties
 logging.level.root=INFO
 logging.level.com.klug.projectmanager=DEBUG
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n
 ```
 
-### 5. Atualização da Configuração de Segurança
+### 5. Integração RabbitMQ com Zipkin
 
-Atualizamos a configuração de segurança para permitir acesso aos endpoints do Actuator.
+Implementamos a integração do RabbitMQ com Zipkin para rastreamento de mensagens.
 
-#### Mudanças em SecurityConfig.java:
-```java
-.authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/auth/**").permitAll()
-    .requestMatchers("/actuator/**").permitAll()
-    .anyRequest().authenticated()
-);
+#### Configuração (pom.xml):
+```xml
+<dependency>
+    <groupId>io.zipkin.brave</groupId>
+    <artifactId>brave-instrumentation-spring-rabbit</artifactId>
+</dependency>
 ```
 
-## Benefícios das Mudanças
+## Funcionalidades e Benefícios
 
-1. **Monitoramento Aprimorado**: Os endpoints do Actuator fornecem informações detalhadas sobre a saúde e o desempenho da aplicação.
-2. **Rastreamento Distribuído**: O Micrometer Tracing permite rastrear transações através de múltiplos serviços, facilitando a identificação de gargalos.
-3. **Métricas Detalhadas**: A integração com Prometheus permite a coleta e visualização de métricas detalhadas do sistema.
-4. **Logging Melhorado**: A configuração de logging aprimorada facilita a identificação e resolução de problemas.
-5. **Acesso Seguro**: A atualização da configuração de segurança permite acesso controlado aos endpoints de monitoramento.
+### 1. Spring Boot Actuator
+- Fornece endpoints para monitoramento de saúde e métricas da aplicação.
+- Facilita a integração com sistemas de monitoramento externos.
 
-## Próximos Passos
+### 2. Rastreamento Distribuído (Zipkin)
+- Visualização do fluxo de requisições através de múltiplos serviços.
+- Análise de latência e identificação de gargalos.
+- Mapa de dependências entre serviços.
+- Filtragem e busca de traces específicos.
 
-1. Implementar um sistema de visualização de logs centralizado (por exemplo, ELK Stack).
-2. Configurar dashboards no Grafana para visualização das métricas do Prometheus.
-3. Estabelecer alertas baseados em métricas para notificação proativa de problemas.
+### 3. Métricas Prometheus
+- Coleta e exportação de métricas detalhadas do sistema.
+- Integração fácil com ferramentas de visualização como Grafana.
+
+### 4. Logging Aprimorado
+- Facilita a identificação e resolução de problemas.
+- Melhora a visibilidade das operações do sistema.
+
+### 5. Integração RabbitMQ-Zipkin
+- Rastreamento de mensagens assíncronas.
+- Correlação de traces em operações baseadas em eventos.
+- Visibilidade end-to-end, incluindo operações síncronas e assíncronas.
+- Identificação de gargalos no processamento de mensagens.
+
+## Configuração no Ambiente Docker
+
+O ambiente Docker foi configurado para incluir os serviços necessários:
+
+```yaml
+version: '3.8'
+
+services:
+  # ... outros serviços ...
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  # ... outros serviços ...
+```
 
 ## Conclusão
 
-As alterações implementadas fornecem uma base para o monitoramento e rastreamento eficaz de nossa arquitetura de microsserviços. Essas ferramentas permitirão uma detecção mais rápida de problemas, facilitarão a resolução de issues e contribuirão para a melhoria contínua do desempenho e da confiabilidade do sistema.
+A implementação dessas ferramentas e técnicas de monitoramento e rastreamento, com o Spring Boot Actuator, Zipkin, Prometheus, e a integração RabbitMQ-Zipkin, fornece uma base sólida para:
+
+1. Detectar e resolver problemas rapidamente.
+2. Entender o comportamento do sistema em produção.
+3. Otimizar o desempenho baseado em dados concretos.
+4. Melhorar a confiabilidade e a manutenibilidade da aplicação.
+
+Essas melhorias na observabilidade nos permitem não apenas reagir mais rapidamente a problemas, mas também antecipar e prevenir potenciais issues antes que afetem os usuários finais.
