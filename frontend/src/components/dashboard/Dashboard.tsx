@@ -81,10 +81,6 @@ export default function Dashboard() {
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <div className="flex items-center space-x-2">
-            <ModeToggle />
-            <ThemeColorToggle />
-          </div>
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">

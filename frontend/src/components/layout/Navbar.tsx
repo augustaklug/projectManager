@@ -7,7 +7,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ThemeColorToggle } from "@/components/theme-color-toggle";
-import { Home, LayoutDashboard, FolderKanban, CheckSquare, User, LogOut } from 'lucide-react';
+import { Home, LayoutDashboard, FolderKanban, CheckSquare, User, LogOut, Menu } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 const Navbar = () => {
   const { logout } = useAuth();
@@ -27,20 +32,46 @@ const Navbar = () => {
               <Home className="h-8 w-8 text-primary" />
               <span className="ml-2 text-xl font-bold hidden sm:block">Project Manager</span>
             </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden md:ml-6 md:flex md:space-x-8">
               <NavLink href="/dashboard" icon={<LayoutDashboard className="h-5 w-5" />}>Dashboard</NavLink>
               <NavLink href="/projects" icon={<FolderKanban className="h-5 w-5" />}>Projects</NavLink>
               <NavLink href="/tasks" icon={<CheckSquare className="h-5 w-5" />}>Tasks</NavLink>
+              <NavLink href="/profile" icon={<User className="h-5 w-5" />}>Profile</NavLink>
             </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
-            <NavLink href="/profile" icon={<User className="h-5 w-5" />}>Profile</NavLink>
+          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
             <ModeToggle />
             <ThemeColorToggle />
             <Button onClick={handleLogout} variant="outline" size="sm" className="flex items-center">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
+          </div>
+          <div className="flex items-center md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <nav className="flex flex-col space-y-4 mt-4">
+                  <NavLink href="/dashboard" icon={<LayoutDashboard className="h-5 w-5" />}>Dashboard</NavLink>
+                  <NavLink href="/projects" icon={<FolderKanban className="h-5 w-5" />}>Projects</NavLink>
+                  <NavLink href="/tasks" icon={<CheckSquare className="h-5 w-5" />}>Tasks</NavLink>
+                  <NavLink href="/profile" icon={<User className="h-5 w-5" />}>Profile</NavLink>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <ModeToggle />
+                    <ThemeColorToggle />
+                  </div>
+                  <Button onClick={handleLogout} variant="outline" size="sm" className="flex items-center mt-4">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

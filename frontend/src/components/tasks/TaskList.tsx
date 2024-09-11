@@ -6,6 +6,7 @@ import { projectService } from '@/services/projectService';
 import { ProjectData, TaskData } from '@/types/project';
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TaskWithProject extends TaskData {
   projectName?: string;
@@ -15,6 +16,7 @@ const TaskList: React.FC = () => {
   const [tasks, setTasks] = useState<TaskWithProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('Not Started');
 
   const fetchTasksAndProjects = useCallback(async () => {
     try {
@@ -108,47 +110,67 @@ const TaskList: React.FC = () => {
 
   const statusColumns = ['Not Started', 'In Progress', 'Completed'];
 
+  const renderTaskCard = (task: TaskWithProject) => (
+    <Card
+      key={task.id}
+      className={`flex flex-col mb-4 ${isDeadlineNear(task.deadline, task.status) ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700' : ''}`}
+    >
+      <CardHeader className="flex-grow">
+        <CardTitle className="text-lg">{task.name}</CardTitle>
+        <p className="text-sm text-muted-foreground">{task.projectName}</p>
+      </CardHeader>
+      <CardContent>
+        <p className={`text-sm mb-2 ${isDeadlineNear(task.deadline, task.status) ? 'font-bold text-orange-600 dark:text-orange-400' : ''}`}>
+          Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'Not set'}
+        </p>
+        <Select
+          value={task.status}
+          onValueChange={(value) => handleStatusChange(task.id, value)}
+        >
+          <SelectTrigger className={`w-full ${getStatusColor(task.status)} text-primary-foreground`}>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Not Started">Not Started</SelectItem>
+            <SelectItem value="In Progress">In Progress</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-foreground">My Tasks</h2>
-      <div className="flex space-x-4 overflow-x-auto pb-4">
+
+      {/* Desktop view */}
+      <div className="hidden md:flex space-x-4 overflow-x-auto pb-4">
         {statusColumns.map((status) => (
           <div key={status} className="flex-1 min-w-[300px]">
             <h3 className="text-lg font-semibold mb-2 text-foreground p-2 rounded">{status}</h3>
             <div className="space-y-4">
-              {tasks.filter(task => task.status === status).map((task) => (
-                <Card
-                  key={task.id}
-                  className={`flex flex-col ${isDeadlineNear(task.deadline, task.status) ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700' : ''}`}
-                >
-                  <CardHeader className="flex-grow">
-                    <CardTitle className="text-lg">{task.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{task.projectName}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`text-sm mb-2 ${isDeadlineNear(task.deadline, task.status) ? 'font-bold text-orange-600 dark:text-orange-400' : ''}`}>
-                      Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'Not set'}
-                    </p>
-                    <Select
-                      value={task.status}
-                      onValueChange={(value) => handleStatusChange(task.id, value)}
-                    >
-                      <SelectTrigger className={`w-full ${getStatusColor(task.status)} text-primary-foreground`}>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Not Started">Not Started</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </CardContent>
-                </Card>
-              ))}
+              {tasks.filter(task => task.status === status).map(renderTaskCard)}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Mobile view */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="md:hidden">
+        <TabsList className="grid w-full grid-cols-3">
+          {statusColumns.map((status) => (
+            <TabsTrigger key={status} value={status}>{status}</TabsTrigger>
+          ))}
+        </TabsList>
+        {statusColumns.map((status) => (
+          <TabsContent key={status} value={status}>
+            <div className="space-y-4">
+              {tasks.filter(task => task.status === status).map(renderTaskCard)}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 };
