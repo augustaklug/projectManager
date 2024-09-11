@@ -12,6 +12,7 @@ import CreateTaskForm from './CreateTaskForm';
 import { Loader2, Calendar, CheckCircle2, Clock, AlertCircle, Plus, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ProjectDetailsProps {
   projectId: number;
@@ -86,13 +87,19 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{project.name}</CardTitle>
-          <CardDescription className="flex items-center text-muted-foreground">
-            <Calendar className="mr-2 h-4 w-4" />
-            {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
+          <CardTitle className="text-xl md:text-2xl">{project.name}</CardTitle>
+          <CardDescription className="flex flex-col sm:flex-row sm:items-center text-muted-foreground">
+            <span className="flex items-center mb-2 sm:mb-0 sm:mr-4">
+              <Calendar className="mr-2 h-4 w-4" />
+              Start: {new Date(project.startDate).toLocaleDateString()}
+            </span>
+            <span className="flex items-center">
+              <Calendar className="mr-2 h-4 w-4" />
+              End: {new Date(project.endDate).toLocaleDateString()}
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,8 +116,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Tasks</span>
+          <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <span className="mb-2 sm:mb-0">Tasks</span>
             <Button size="sm" onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}>
               {showCreateTaskForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
               {showCreateTaskForm ? 'Cancel' : 'Add New Task'}
@@ -124,27 +131,29 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
             </div>
           )}
           {project.tasks.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
-              {project.tasks.map((task: TaskData) => (
-                <AccordionItem key={task.id} value={`task-${task.id}`}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex justify-between items-center w-full">
-                      <span className="font-medium">{task.name}</span>
-                      <Badge className={`${getStatusColor(task.status)} text-primary-foreground`}>{task.status}</Badge>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">{task.description}</p>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="mr-2 h-4 w-4" />
-                        Due: {new Date(task.deadline).toLocaleDateString()}
+            <ScrollArea className="h-[300px] md:h-[400px]">
+              <Accordion type="single" collapsible className="w-full">
+                {project.tasks.map((task: TaskData) => (
+                  <AccordionItem key={task.id} value={`task-${task.id}`}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full">
+                        <span className="font-medium mb-2 sm:mb-0">{task.name}</span>
+                        <Badge className={`${getStatusColor(task.status)} text-primary-foreground`}>{task.status}</Badge>
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">{task.description}</p>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="mr-2 h-4 w-4" />
+                          Due: {new Date(task.deadline).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </ScrollArea>
           ) : (
             <p className="text-muted-foreground">No tasks for this project yet.</p>
           )}
