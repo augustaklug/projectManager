@@ -1,11 +1,11 @@
 name: Push to Docker Hub
 
 on:
-#  push:
-#    branches: [ "master" ]
-#    paths-ignore:
-#      - '**/*.md'
-#      - '.gitignore'
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
   workflow_dispatch:
 
 jobs:
