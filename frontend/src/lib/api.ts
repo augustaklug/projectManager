@@ -1,8 +1,7 @@
 import axios from 'axios';
 import {authService} from '@/services/authService';
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://angularengenharia.com/api';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://angularengenharia.com/api';
 
 const api = axios.create({
     baseURL: API_URL,
