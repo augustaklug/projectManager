@@ -68,7 +68,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://backend:8080/api
+      - NEXT_PUBLIC_API_URL=http://146.235.58.207:8080/api
     depends_on:
       - backend
       - note-service

@@ -2,7 +2,7 @@ import axios from 'axios';
 import {authService} from '@/services/authService';
 
 // Use environment variable for base URL, defaulting to the Docker service name
-const API_URL = process.env.REACT_APP_API_URL || 'http://backend:8080/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://146.235.58.207:8080/api';
 
 const api = axios.create({
     baseURL: API_URL,
