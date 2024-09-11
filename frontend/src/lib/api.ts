@@ -1,8 +1,11 @@
 import axios from 'axios';
 import {authService} from '@/services/authService';
 
+// Use environment variable for base URL, defaulting to the Docker service name
+const API_URL = process.env.REACT_APP_API_URL || 'http://backend:8080/api';
+
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: API_URL,
 });
 
 // Interceptor para adicionar o token JWT a todas as requisições
