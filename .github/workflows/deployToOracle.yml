@@ -70,6 +70,6 @@ jobs:
             fi
             
             # Execute os comandos Docker Compose
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
           EOF
