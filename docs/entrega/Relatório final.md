@@ -72,10 +72,10 @@ Preparação do sistema para operação em ambiente de produção:
 
 ## Detalhamento das Entregas
 1. [[Primeira Entrega](https://github.com/augustaklug/projectManager/blob/5edba5f65d9f7243b448e74079a4b3efc49cb949/docs/entrega/primeiraEntrega.md)]
-2. [[Segunda Entrega](https://github.com/augustaklug/projectManager)]
-3. [[Terceira Entrega](https://github.com/augustaklug/projectManager)]
-4. [[Quarta Entrega](https://github.com/augustaklug/projectManager)]
-5. [[Quinta Entrega](https://github.com/augustaklug/projectManager)]
+2. [[Segunda Entrega](https://github.com/augustaklug/projectManager/blob/486e2913459a229c7d5a248a6e4b025cc6552980/docs/entrega/segundaEntrega.md)]
+3. [[Terceira Entrega](https://github.com/augustaklug/projectManager/blob/486e2913459a229c7d5a248a6e4b025cc6552980/docs/entrega/terceiraEntrega.md)]
+4. [[Quarta Entrega](https://github.com/augustaklug/projectManager/blob/486e2913459a229c7d5a248a6e4b025cc6552980/docs/entrega/quartaEntrega.md)]
+5. [[Quinta Entrega]()]
 
 ## Arquitetura Final
 
