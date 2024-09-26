@@ -77,7 +77,7 @@ futuras evoluções em direção a uma arquitetura de microsserviços.
 
 ![RPA_JiCm4CPtFyKf4mnjTWPKzP_4q90siB5StACoD7OuEnKIucaO-Y1zCSvk2YrYiMn_t-_kqzaZ7v13rsoLVpKMs7bIg8DZUFJ4gXNHQDEY3P3DsTb0Tfq1UfZFBiMAU6SEU-UXP6FZhV5Fzgfazq8w95NJTKBBIhrrr15aAwnh4nRBTBrQB2zB5YvG3oP3KQar1gpH2phjTqcPZfMAUM](https://github.com/user-attachments/assets/64dfca58-2877-488f-9d90-9046b33e8572)
 
-### 7. **Implementação das User Stories previstas**
+### 7. **Implementação das [User Stories previstas ](https://github.com/augustaklug/projectManager/blob/327b39c9d89935ea5a4df3a42fae5556fda6f610/docs/TP1/userStories.md)**
 
 O front-end implementa completamente ou parcialmente 10 das 24 user stories, focando nas funcionalidades básicas de
 gerenciamento de projetos e tarefas. As 14 user stories restantes, que incluem funcionalidades mais avançadas como relatórios detalhados, 
